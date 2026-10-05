@@ -4,9 +4,15 @@
 Mastère Management de la Transformation digitale en IA — Institut Léonard de Vinci
 
 Refonte des algorithmes de prévision des pluies de **France Météo** par
-l'intelligence artificielle, à destination des **agriculteurs**. Ce dépôt
-contient le **MVP** : chaîne complète *collecte → stockage → modèle → API →
-interface* sur une région (station SYNOP **Toulouse-Blagnac**, Occitanie).
+l'intelligence artificielle et les **capteurs IoT**, à destination des
+**agriculteurs**, **collectivités** et **SDIS**. Ce dépôt contient le **MVP** :
+chaîne complète *collecte → stockage → modèle → API → interface* sur une zone
+pilote (station SYNOP **Montpellier-Fréjorgues**, Occitanie — arc méditerranéen,
+zone agricole à fort enjeu inondation).
+
+> **Continuité avec l'étude de cas n°1.** Le cadrage, les personas, le backlog,
+> la méthode (Scrum/Jira) et le budget (MVP 147 k€ / 550 k€ annuels) sont repris
+> du cahier des charges de l'EdC-01, pour une cohérence d'ensemble du projet.
 
 ---
 
@@ -52,10 +58,10 @@ pytest -q
 
 | Indicateur | Valeur |
 |---|---|
-| ROC-AUC | **0,773** |
-| PR-AUC | 0,501 (taux de base 0,243) |
-| Brier score | 0,156 |
-| F1 / Rappel (seuil optimal 0,22) | 0,575 / **0,751** |
+| ROC-AUC | **0,743** |
+| PR-AUC | 0,331 (taux de base 0,129) |
+| Brier score | 0,101 |
+| F1 / Rappel (seuil optimal 0,16) | 0,399 / **0,670** |
 
 ---
 
@@ -90,16 +96,20 @@ goutte-deau-mvp/
 
 Le projet a été mené dans l'ordre suivant :
 
-1. **Cadrage & planification** — méthode agile (Scrumban), WBS, Gantt, schéma
-   directeur, budget prévisionnel (~74,6 k€ pour le MVP), outils collaboratifs.
+1. **Cadrage & planification** — reprise de l'EdC-01 : méthode **Scrum / Jira**,
+   équipe-projet, backlog priorisé, WBS, Gantt, schéma directeur, budget
+   (**MVP ≈ 147 k€**, 550 k€ annuels), outils collaboratifs.
    → [`docs/01-planification.md`](docs/01-planification.md).
-2. **Architecture** — diagrammes d'architecture et de composants, contrat
-   d'API, sécurité/scalabilité. → [`docs/02-architecture.md`](docs/02-architecture.md).
+2. **Architecture** — diagrammes d'architecture et de composants (sources
+   SYNOP + capteurs IoT cible, notifications multicanal, 3 profils
+   utilisateurs), contrat d'API, sécurité/scalabilité.
+   → [`docs/02-architecture.md`](docs/02-architecture.md).
 3. **Données** — identification de la source pertinente (SYNOP Météo-France),
-   collecte idempotente et stockage SQLite (29 181 observations → 3 653 jours).
+   collecte idempotente et stockage SQLite (28 605 observations → 3 653 jours).
 4. **Modèle** — prévision de pluie à J+1 (saisonnalité + persistance + pression),
    sélection par validation croisée temporelle, calibration des probabilités.
-5. **Évaluation** — ROC-AUC, PR-AUC, Brier, matrice de confusion, seuil optimal.
+5. **Évaluation** — ROC-AUC, PR-AUC, Brier, matrice de confusion, seuil optimal,
+   et pont vers les KPIs cibles RMSE/MAE de l'EdC-01.
 6. **API** — FastAPI exposant `/predict`, `/health`, `/model-info` (OpenAPI).
 7. **Interface** — démonstration Streamlit accessible avec indicateurs qualité.
 8. **Documentation** — technique, éco-responsabilité, accessibilité, tests.

@@ -24,10 +24,13 @@ STATIONS_URL = (
 )
 
 # --- Perimetre (une seule region, cf. enonce) -----------------------------
-# Station SYNOP retenue : Toulouse-Blagnac (Occitanie, region agricole).
-STATION_ID = "07630"
-STATION_NAME = "Toulouse-Blagnac"
-REGION = "Occitanie"
+# Station SYNOP retenue : Montpellier-Frejorgues (Occitanie, arc mediterraneen).
+# Zone a la fois agricole (vignes, maraichage) et a fort enjeu inondation
+# (episodes mediterraneens / cevenols), coherente avec les cas d'usage
+# "planification agricole" et "gestion des inondations" de l'EdC-01.
+STATION_ID = "07643"
+STATION_NAME = "Montpellier-Frejorgues"
+REGION = "Occitanie (arc mediterraneen)"
 
 # Periode d'historique a collecter (annees incluses).
 YEAR_START = 2015

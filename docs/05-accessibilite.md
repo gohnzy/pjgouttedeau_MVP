@@ -17,6 +17,15 @@ appliqué dans l'interface de démonstration (Streamlit).
 - **WCAG 2.1** (niveau **AA** visé) — standard international, 4 principes :
   **Perceptible, Utilisable, Compréhensible, Robuste (POUR)**.
 
+> **Diversité des usages (personas EdC-01).** L'interface doit rester accessible
+> aux **trois profils** du cahier des charges, dans des contextes variés :
+> *Teddy* (agriculteur, en extérieur, forte luminosité, usage mobile),
+> *Chantale* (SDIS, décision rapide sous stress → lisibilité et hiérarchie
+> claires) et *Frédérick* (urbaniste, consultation d'historiques). Les
+> **alertes multicanal** (SMS, mail, notification push) doivent elles aussi être
+> accessibles : texte clair, pas d'information portée par la seule couleur,
+> contenu compréhensible hors application.
+
 ---
 
 ## 5.2 Règles à respecter (par principe POUR)

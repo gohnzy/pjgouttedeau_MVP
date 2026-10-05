@@ -13,9 +13,18 @@
 | **Séparation des responsabilités** | Collecte, stockage, modèle, API et interface sont des composants distincts. |
 | **Stateless API** | L'API ne conserve pas d'état entre requêtes → scalabilité horizontale. |
 | **Modèle découplé** | Le modèle est un artefact versionné (`.joblib`) chargé au démarrage. |
-| **Sources ouvertes & traçables** | Données SYNOP Météo-France sous Licence Ouverte. |
-| **Évolutivité** | Le MVP (SQLite + VM unique) évolue vers une cible cloud (PostgreSQL + conteneurs). |
-| **Sécurité par conception** | Validation des entrées (Pydantic), HTTPS, moindre privilège, pas de données personnelles. |
+| **Données hybrides** | SYNOP Météo-France (ouvertes, traçables) pour le MVP, **capteurs IoT** pour la cible temps réel (cf. EdC-01). |
+| **Évolutivité** | Le MVP (SQLite + VM unique) évolue vers une cible cloud **AWS** (PostgreSQL + conteneurs, cf. budget EdC-01). |
+| **Temps réel** | Architecture conçue pour une mise à jour des prévisions **< 5 min** après réception de nouvelles mesures (exigence EdC-01). |
+| **Sécurité par conception** | Validation des entrées (Pydantic), HTTPS, moindre privilège, RGPD, pas de données personnelles dans le MVP. |
+
+### Utilisateurs cibles (reprise de l'EdC-01)
+
+L'architecture sert **trois profils** identifiés dans le cahier des charges :
+
+- **Agriculteurs** (*Teddy, maraîcher*) — planification agricole (semis, récolte, irrigation) ;
+- **Gestionnaires de risques / SDIS** (*Chantale, responsable SDIS*) — alertes pour la mobilisation des secours ;
+- **Collectivités / urbanisme** (*Frédérick, urbaniste municipal*) — gestion des eaux pluviales, historique, zones sensibles.
 
 ---
 
@@ -26,17 +35,17 @@ Vue d'ensemble du système, du MVP à la cible d'industrialisation.
 ```mermaid
 flowchart TB
     subgraph SRC["Sources de données"]
-        MF["Météo-France SYNOP<br/>(archive publique, Licence Ouverte)"]
-        IOT["Capteurs IoT terrain<br/>(phase ultérieure)"]
+        MF["Météo-France SYNOP<br/>(archive publique, Licence Ouverte)<br/><b>source du MVP</b>"]
+        IOT["Réseau de capteurs IoT<br/>(zone pilote 50 km², temps réel)<br/><b>cible EdC-01</b>"]
     end
 
     subgraph INGEST["Couche d'ingestion"]
         COL["Service de collecte<br/>(Python / requests)"]
-        SCHED["Ordonnanceur<br/>(cron / planificateur)"]
+        SCHED["Ordonnanceur<br/>(cron / planificateur)<br/>rafraîchissement < 5 min"]
     end
 
     subgraph DATA["Couche de données"]
-        DB[("Base de données<br/>SQLite (MVP)<br/>PostgreSQL (cible)")]
+        DB[("Base de données<br/>SQLite (MVP)<br/>PostgreSQL + PostGIS (cible)")]
     end
 
     subgraph ML["Couche IA / Modèle"]
@@ -47,15 +56,19 @@ flowchart TB
 
     subgraph SERVE["Couche de service"]
         API["API REST<br/>(FastAPI + Uvicorn)"]
+        AUTH["Authentification<br/>(cible, backlog #4)"]
+        NOTIF["Notifications multicanal<br/>SMS · mail · push<br/>(cible, backlog #6)"]
     end
 
-    subgraph CLIENT["Couche présentation"]
-        UI["Interface de démonstration<br/>(Streamlit)"]
-        EXT["Clients tiers<br/>(appli agriculteurs, futur)"]
+    subgraph CLIENT["Couche présentation / utilisateurs"]
+        UI["Dashboard & interface démo<br/>(Streamlit)"]
+        AGRI["Agriculteurs"]
+        SDIS["SDIS / gestion des risques"]
+        COLL["Collectivités / urbanisme"]
     end
 
     MF --> COL
-    IOT -. futur .-> COL
+    IOT -. cible .-> COL
     SCHED --> COL
     COL --> DB
     DB --> TRAIN
@@ -63,10 +76,17 @@ flowchart TB
     TRAIN --> EVAL
     MODEL --> API
     API --> UI
-    API --> EXT
+    API --> NOTIF
+    AUTH -. protège .-> API
+    UI --> AGRI
+    UI --> SDIS
+    UI --> COLL
+    NOTIF -. alertes .-> AGRI
+    NOTIF -. alertes .-> SDIS
+    NOTIF -. alertes .-> COLL
 
     classDef future stroke-dasharray: 5 5;
-    class IOT,EXT future;
+    class IOT,AUTH,NOTIF future;
 ```
 
 ### Vue de déploiement (cible)
@@ -78,7 +98,7 @@ flowchart LR
     LB --> APIc["Conteneur API<br/>(FastAPI/Uvicorn)"]
     APIc --> PG[("PostgreSQL")]
     APIc --> VOL["Volume modèles<br/>(artefacts .joblib)"]
-    subgraph HOST["Hébergeur éco-responsable (ex. Scaleway / OVHcloud)"]
+    subgraph HOST["Cloud AWS (choix EdC-01) — région bas-carbone (eu-west)"]
         LB
         UIc
         APIc
@@ -171,7 +191,7 @@ Exemple de réponse `/predict` :
 ```json
 {
   "date": "2025-07-14",
-  "station": "Toulouse-Blagnac",
+  "station": "Montpellier-Frejorgues",
   "rain_probability": 0.23,
   "risk_level": "faible",
   "threshold_mm": 1.0

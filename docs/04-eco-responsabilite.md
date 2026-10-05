@@ -34,7 +34,7 @@ de Services Numériques (RGESN)** et les principes du **Green IT / Green AI**.
 ## 4.3 Green AI — spécificités IA
 
 - **« Le bon modèle, pas le plus gros »** : un modèle linéaire calibré atteint
-  ici un ROC-AUC de 0,77, rendant inutile un modèle profond énergivore.
+  ici un ROC-AUC de 0,74, rendant inutile un modèle profond énergivore.
 - **Mesure de l'empreinte** : outils recommandés — `CodeCarbon`,
   `Scaphandre`, calculateur **Boavizta** — pour estimer kWh et gCO₂e de
   l'entraînement et de l'inférence, et en faire un **indicateur de pilotage**.
@@ -44,7 +44,26 @@ de Services Numériques (RGESN)** et les principes du **Green IT / Green AI**.
 
 ---
 
-## 4.4 Étude des hébergements responsables
+## 4.4 Hébergement : optimiser le choix AWS (EdC-01)
+
+Le cahier des charges (EdC-01) a retenu **AWS** comme fournisseur cloud, pour
+son écosystème IoT (AWS IoT Core), sa scalabilité et son stockage. L'enjeu
+d'éco-conception est donc d'**exploiter AWS de façon responsable**, puis de
+garder ouverte l'option d'un hébergeur souverain plus sobre.
+
+### Rendre le déploiement AWS responsable
+
+| Levier | Mise en œuvre sur AWS |
+|---|---|
+| **Région bas-carbone** | Déployer dans une région à électricité décarbonée (ex. `eu-west-3` Paris, `eu-north-1` Suède) ; AWS vise 100 % d'énergies renouvelables. |
+| **Processeurs efficients** | Instances **Graviton** (ARM) : meilleur rendement performance/watt que x86. |
+| **Serverless & autoscaling** | Lambda / Fargate pour ne consommer qu'à l'usage ; pas de serveur allumé en continu. |
+| **Extinction hors production** | Arrêt programmé des environnements de recette la nuit/week-end (*instance scheduler*). |
+| **Stockage par paliers** | S3 Intelligent-Tiering / Glacier pour les archives ; cycle de vie des données. |
+| **Mesure** | *AWS Customer Carbon Footprint Tool* pour suivre les émissions. |
+| **Right-sizing** | Dimensionnement au plus juste (Compute Optimizer), pas de surprovisionnement. |
+
+### Alternative souveraine (recommandation de veille)
 
 Critères de choix d'un hébergeur éco-responsable :
 
@@ -57,20 +76,19 @@ Critères de choix d'un hébergeur éco-responsable :
 | **Souveraineté & localisation** | Hébergement en France/UE (RGPD, réseau court). |
 | **Engagements & labels** | *Climate Neutral Data Centre Pact*, ISO 14001, *Code of Conduct* européen. |
 
-### Comparatif synthétique (hébergeurs adaptés)
-
 | Hébergeur | Atouts éco | Remarque |
 |---|---|---|
-| **Scaleway** (Free/Iliad) | Datacenter DC5 à *free cooling* par adiabatique (sans clim), PUE ~1,15 | Souverain, France |
+| **Scaleway** (Free/Iliad) | Datacenter DC5 à *free cooling* adiabatique (sans clim), PUE ~1,15 | Souverain, France |
 | **OVHcloud** | Refroidissement liquide (watercooling), réutilisation, serveurs conçus en interne | Souverain, France |
 | **Infomaniak** | 100 % énergies renouvelables, neutralité carbone, réutilisation de chaleur | Souverain, Suisse |
-| Clever Cloud | PaaS, mise à l'échelle fine (sobriété), France | Souverain |
 
-> **Recommandation MVP** : un hébergeur **souverain** (Scaleway, OVHcloud ou
-> Infomaniak) avec datacenter à faible PUE et énergie bas-carbone, aligné sur
-> les exigences d'un établissement public. Déploiement en **conteneurs** pour
-> dimensionner au plus juste (pas de VM surdimensionnée) et **extinction des
-> environnements hors production** la nuit/week-end.
+> **Recommandation.** Conserver **AWS** (choix EdC-01) en appliquant les leviers
+> ci-dessus (région décarbonée, Graviton, serverless, extinction programmée).
+> Pour un **service public** soumis à des exigences de souveraineté et
+> d'exemplarité environnementale, **réévaluer en P4** une bascule partielle vers
+> un hébergeur souverain à faible PUE (Scaleway, OVHcloud) — notamment pour les
+> données et traitements sensibles. Déploiement en **conteneurs** pour
+> dimensionner au plus juste.
 
 ---
 
