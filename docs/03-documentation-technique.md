@@ -195,7 +195,7 @@ Codes d'erreur : `422` (format de date invalide), `503` (modèle non chargé).
 
 ```bash
 python -m venv .venv && .venv\Scripts\activate      # Windows
-pip install -r requirements.txt
+pip install -r dependencies_versions.txt
 
 python -m src.data_collection --start 2015 --end 2024   # collecte + agrégats
 python -m src.train                                      # entraînement

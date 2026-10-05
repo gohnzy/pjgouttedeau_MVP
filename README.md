@@ -4,7 +4,7 @@
 # 1. Environnement
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (source .venv/bin/activate sous Linux/macOS)
-pip install -r requirements.txt
+pip install -r dependencies_versions.txt
 
 # 2. Collecte des données SYNOP Météo-France (+ agrégats quotidiens)
 python -m src.data_collection --start 2015 --end 2024
@@ -49,7 +49,7 @@ pytest -q
 ```
 goutte-deau-mvp/
 ├── config.py                 # Paramètres (station, période, chemins)
-├── requirements.txt
+├── dependencies_versions.txt
 ├── src/
 │   ├── database.py           # Schéma & accès SQLite (C14)
 │   ├── data_collection.py    # Collecte SYNOP → base (C13)
