@@ -24,7 +24,7 @@ situe le **MVP** dans cette trajectoire.
 | Élément | Description |
 |---|---|
 | **Objectif produit** | Prévoir le risque de pluie avec une précision horaire au km² sur 24 h, avec alertes multicanal, pour les agriculteurs, collectivités et SDIS. |
-| **Objectif du MVP** | Démontrer la chaîne complète *collecte → stockage → modèle → API → interface* sur **une seule zone pilote** : l'aire de **Montpellier (station SYNOP Montpellier-Fréjorgues, Occitanie)**, zone agricole méditerranéenne à fort enjeu inondation. |
+| **Objectif du MVP** | Démontrer la chaîne complète *collecte → stockage → modèle → API → interface* sur **une seule zone pilote** : l'aire de **Toulouse (station SYNOP Toulouse-Blagnac, Occitanie)**, grande région agricole du Sud-Ouest. |
 | **Commanditaire** | Direction de la prévision — France Météo. |
 | **Sponsor** | Direction de la transformation digitale. |
 | **Parties prenantes** | Agriculteurs (utilisateurs majoritaires), SDIS / gestionnaires de risques, collectivités / urbanisme, chambres d'agriculture, Data Scientists, Ingénieur IoT, Développeurs, DSI, RSSI, direction financière, DPO. |
@@ -87,7 +87,7 @@ budget, §1.6). Les ETP ci-dessous correspondent à la **phase MVP**.
 
 > Le MVP mobilise prioritairement les **Data Scientists** et **Développeurs**
 > (chaîne données → modèle → API → interface) ; l'**Ingénieur IoT** prépare le
-> déploiement des capteurs sur la zone pilote de Montpellier.
+> déploiement des capteurs sur la zone pilote de Toulouse.
 
 ---
 
@@ -228,7 +228,7 @@ fonctionnement de 550 000 €** pour le projet complet, dont un **budget MVP de
 ### Budget du MVP (147 000 €)
 
 Le MVP mobilise une partie de l'équipe sur ~3 mois et déploie la zone pilote
-(Montpellier, 50 km²).
+(Toulouse, 50 km²).
 
 | Poste | Détail | Montant (€) |
 |---|---|---:|
@@ -251,7 +251,7 @@ Le MVP mobilise une partie de l'équipe sur ~3 mois et déploie la zone pilote
 | Risque | Prob. | Impact | Parade |
 |---|---|---|---|
 | Qualité/trous dans les données SYNOP | Moyen | Élevé | Nettoyage, imputation, contrôle qualité automatisé. |
-| Classe « pluie » rare (climat méditerranéen, ~13 %) | Élevé | Moyen | Pondération des classes, seuil de décision optimisé, métriques adaptées (PR-AUC, rappel). |
+| Classe « pluie » déséquilibrée (~22 % des jours) | Moyen | Moyen | Pondération des classes, seuil de décision optimisé, métriques adaptées (PR-AUC, rappel). |
 | Retard de déploiement du réseau IoT | Moyen | Élevé | Démarrer sur données ouvertes (SYNOP) ; IoT en incrément P4. |
 | Dérive climatique (non-stationnarité) | Moyen | Moyen | Ré-entraînement périodique, suivi des métriques. |
 | Dépendance à une source externe | Faible | Élevé | Cache local, bascule de source, archivage. |

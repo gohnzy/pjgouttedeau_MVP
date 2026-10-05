@@ -7,8 +7,8 @@ Refonte des algorithmes de prévision des pluies de **France Météo** par
 l'intelligence artificielle et les **capteurs IoT**, à destination des
 **agriculteurs**, **collectivités** et **SDIS**. Ce dépôt contient le **MVP** :
 chaîne complète *collecte → stockage → modèle → API → interface* sur une zone
-pilote (station SYNOP **Montpellier-Fréjorgues**, Occitanie — arc méditerranéen,
-zone agricole à fort enjeu inondation).
+pilote (station SYNOP **Toulouse-Blagnac**, Occitanie — grande région agricole
+du Sud-Ouest).
 
 > **Continuité avec l'étude de cas n°1.** Le cadrage, les personas, le backlog,
 > la méthode (Scrum/Jira) et le budget (MVP 147 k€ / 550 k€ annuels) sont repris
@@ -58,10 +58,10 @@ pytest -q
 
 | Indicateur | Valeur |
 |---|---|
-| ROC-AUC | **0,743** |
-| PR-AUC | 0,331 (taux de base 0,129) |
-| Brier score | 0,101 |
-| F1 / Rappel (seuil optimal 0,16) | 0,399 / **0,670** |
+| ROC-AUC | **0,773** |
+| PR-AUC | 0,501 (taux de base 0,243) |
+| Brier score | 0,156 |
+| F1 / Rappel (seuil optimal 0,22) | 0,575 / **0,751** |
 
 ---
 
@@ -105,7 +105,7 @@ Le projet a été mené dans l'ordre suivant :
    utilisateurs), contrat d'API, sécurité/scalabilité.
    → [`docs/02-architecture.md`](docs/02-architecture.md).
 3. **Données** — identification de la source pertinente (SYNOP Météo-France),
-   collecte idempotente et stockage SQLite (28 605 observations → 3 653 jours).
+   collecte idempotente et stockage SQLite (29 181 observations → 3 653 jours).
 4. **Modèle** — prévision de pluie à J+1 (saisonnalité + persistance + pression),
    sélection par validation croisée temporelle, calibration des probabilités.
 5. **Évaluation** — ROC-AUC, PR-AUC, Brier, matrice de confusion, seuil optimal,

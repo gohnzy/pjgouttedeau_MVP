@@ -191,7 +191,7 @@ Exemple de réponse `/predict` :
 ```json
 {
   "date": "2025-07-14",
-  "station": "Montpellier-Frejorgues",
+  "station": "Toulouse-Blagnac",
   "rain_probability": 0.23,
   "risk_level": "faible",
   "threshold_mm": 1.0

@@ -34,7 +34,7 @@ de Services Numériques (RGESN)** et les principes du **Green IT / Green AI**.
 ## 4.3 Green AI — spécificités IA
 
 - **« Le bon modèle, pas le plus gros »** : un modèle linéaire calibré atteint
-  ici un ROC-AUC de 0,74, rendant inutile un modèle profond énergivore.
+  ici un ROC-AUC de 0,77, rendant inutile un modèle profond énergivore.
 - **Mesure de l'empreinte** : outils recommandés — `CodeCarbon`,
   `Scaphandre`, calculateur **Boavizta** — pour estimer kWh et gCO₂e de
   l'entraînement et de l'inférence, et en faire un **indicateur de pilotage**.

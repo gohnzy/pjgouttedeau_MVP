@@ -18,7 +18,7 @@ def _fake_daily(n: int = 40) -> pd.DataFrame:
     dates = pd.date_range("2020-01-01", periods=n, freq="D")
     rng = np.random.default_rng(0)
     return pd.DataFrame({
-        "station_id": "07643",
+        "station_id": "07630",
         "obs_date": dates.astype(str),
         "precip_mm": rng.gamma(1.0, 2.0, n).round(1),
         "t_mean": rng.normal(10, 5, n),
