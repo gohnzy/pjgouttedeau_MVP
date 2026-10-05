@@ -1,0 +1,54 @@
+flowchart TB
+    subgraph SRC["Sources de donnees"]
+        MF["Meteo-France SYNOP<br/>(archive publique, Licence Ouverte)<br/><b>source du MVP</b>"]
+        IOT["Reseau de capteurs IoT<br/>(zone pilote 50 km2, temps reel)<br/><b>cible EdC-01</b>"]
+    end
+
+    subgraph INGEST["Couche d'ingestion"]
+        COL["Service de collecte<br/>(Python / requests)"]
+        SCHED["Ordonnanceur<br/>(cron / planificateur)<br/>rafraichissement < 5 min"]
+    end
+
+    subgraph DATA["Couche de donnees"]
+        DB[("Base de donnees<br/>SQLite (MVP)<br/>PostgreSQL + PostGIS (cible)")]
+    end
+
+    subgraph ML["Couche IA / Modele"]
+        TRAIN["Entrainement<br/>(scikit-learn)"]
+        MODEL["Modele entraine<br/>(artefact .joblib)"]
+        EVAL["Evaluation<br/>(metriques)"]
+    end
+
+    subgraph SERVE["Couche de service"]
+        API["API REST<br/>(FastAPI + Uvicorn)"]
+        AUTH["Authentification<br/>(cible, backlog #4)"]
+        NOTIF["Notifications multicanal<br/>SMS - mail - push<br/>(cible, backlog #6)"]
+    end
+
+    subgraph CLIENT["Couche presentation / utilisateurs"]
+        UI["Dashboard & interface demo<br/>(Streamlit)"]
+        AGRI["Agriculteurs"]
+        SDIS["SDIS / gestion des risques"]
+        COLL["Collectivites / urbanisme"]
+    end
+
+    MF --> COL
+    IOT -. cible .-> COL
+    SCHED --> COL
+    COL --> DB
+    DB --> TRAIN
+    TRAIN --> MODEL
+    TRAIN --> EVAL
+    MODEL --> API
+    API --> UI
+    API --> NOTIF
+    AUTH -. protege .-> API
+    UI --> AGRI
+    UI --> SDIS
+    UI --> COLL
+    NOTIF -. alertes .-> AGRI
+    NOTIF -. alertes .-> SDIS
+    NOTIF -. alertes .-> COLL
+
+    classDef future stroke-dasharray: 5 5;
+    class IOT,AUTH,NOTIF future;

@@ -89,6 +89,8 @@ flowchart TB
     class IOT,AUTH,NOTIF future;
 ```
 
+![Diagramme d'architecture](diagrams/01-architecture.png)
+
 ### Vue de déploiement (cible)
 
 ```mermaid
@@ -162,6 +164,8 @@ flowchart TB
     classDef store fill:#eef,stroke:#88a;
     class SQLITE,ART store;
 ```
+
+![Diagramme de composants](diagrams/02-composants.png)
 
 ---
 

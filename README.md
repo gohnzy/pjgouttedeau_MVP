@@ -1,22 +1,4 @@
-# 🌧️ Projet Goutte d'eau — MVP
-
-**Étude de cas — Bloc 2 : Conception et développement de l'architecture fonctionnelle**
-Mastère Management de la Transformation digitale en IA — Institut Léonard de Vinci
-
-Refonte des algorithmes de prévision des pluies de **France Météo** par
-l'intelligence artificielle et les **capteurs IoT**, à destination des
-**agriculteurs**, **collectivités** et **SDIS**. Ce dépôt contient le **MVP** :
-chaîne complète *collecte → stockage → modèle → API → interface* sur une zone
-pilote (station SYNOP **Toulouse-Blagnac**, Occitanie — grande région agricole
-du Sud-Ouest).
-
-> **Continuité avec l'étude de cas n°1.** Le cadrage, les personas, le backlog,
-> la méthode (Scrum/Jira) et le budget (MVP 147 k€ / 550 k€ annuels) sont repris
-> du cahier des charges de l'EdC-01, pour une cohérence d'ensemble du projet.
-
----
-
-## 🚀 Démarrage rapide
+# 🚀 Démarrage rapide
 
 ```bash
 # 1. Environnement
@@ -40,9 +22,6 @@ streamlit run app/streamlit_app.py
 pytest -q
 ```
 
-> Derrière un proxy d'entreprise, la collecte utilise automatiquement le
-> magasin de certificats Windows via `truststore` (TLS).
-
 ---
 
 ## 🧩 Fonctionnalités du MVP
@@ -56,12 +35,12 @@ pytest -q
 
 ### Résultats du modèle (test 2023–2024)
 
-| Indicateur | Valeur |
-|---|---|
-| ROC-AUC | **0,773** |
-| PR-AUC | 0,501 (taux de base 0,243) |
-| Brier score | 0,156 |
-| F1 / Rappel (seuil optimal 0,22) | 0,575 / **0,751** |
+| Indicateur                       | Valeur                     |
+| -------------------------------- | -------------------------- |
+| ROC-AUC                          | **0,773**                  |
+| PR-AUC                           | 0,501 (taux de base 0,243) |
+| Brier score                      | 0,156                      |
+| F1 / Rappel (seuil optimal 0,22) | 0,575 / **0,751**          |
 
 ---
 
@@ -86,8 +65,7 @@ goutte-deau-mvp/
     ├── 01-planification.md         # Planning, budget, schéma directeur (C7–C10)
     ├── 02-architecture.md          # Diagrammes architecture & composants (C11, C13)
     ├── 03-documentation-technique.md (C13, C14)
-    ├── 04-eco-responsabilite.md    # Green IT & hébergement responsable (C12)
-    └── 05-accessibilite.md         # Règles RGAA/WCAG (C15)
+    └── 04-eco-responsabilite-accessibilite.md # Green IT, hébergement responsable & RGAA/WCAG (C12, C15)
 ```
 
 ---
@@ -121,17 +99,17 @@ Les choix et limites sont détaillés dans
 
 ## ✅ Correspondance avec les compétences évaluées
 
-| Compétence | Où |
-|---|---|
-| **C7** Organiser le travail de l'équipe-projet | `docs/01-planification.md` |
-| **C8** Outils de travail collaboratif | `docs/01-planification.md` |
-| **C9** Budget prévisionnel | `docs/01-planification.md` |
-| **C10** Schéma directeur / calendrier | `docs/01-planification.md` |
-| **C11** Architecture fonctionnelle | `docs/02-architecture.md`, `src/api.py` |
-| **C12** Éco-conception / hébergement responsable | `docs/04-eco-responsabilite.md` |
-| **C13** Frameworks, plateformes, IA, IoT | `src/`, `docs/03-documentation-technique.md` |
-| **C14** Conception de la base de données | `src/database.py`, `docs/03-documentation-technique.md` |
-| **C15** Interface accessible | `app/streamlit_app.py`, `docs/05-accessibilite.md` |
+| Compétence                                       | Où                                                                    |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| **C7** Organiser le travail de l'équipe-projet   | `docs/01-planification.md`                                            |
+| **C8** Outils de travail collaboratif            | `docs/01-planification.md`                                            |
+| **C9** Budget prévisionnel                       | `docs/01-planification.md`                                            |
+| **C10** Schéma directeur / calendrier            | `docs/01-planification.md`                                            |
+| **C11** Architecture fonctionnelle               | `docs/02-architecture.md`, `src/api.py`                               |
+| **C12** Éco-conception / hébergement responsable | `docs/04-eco-responsabilite-accessibilite.md`                         |
+| **C13** Frameworks, plateformes, IA, IoT         | `src/`, `docs/03-documentation-technique.md`                          |
+| **C14** Conception de la base de données         | `src/database.py`, `docs/03-documentation-technique.md`               |
+| **C15** Interface accessible                     | `app/streamlit_app.py`, `docs/04-eco-responsabilite-accessibilite.md` |
 
 ---
 
