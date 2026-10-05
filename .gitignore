@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Donnees & modeles (regenerables, ne pas versionner)
+data/*.db
+data/*.csv
+data/raw/
+models/*.joblib
+models/*.json
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

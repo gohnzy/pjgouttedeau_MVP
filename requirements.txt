@@ -1,0 +1,24 @@
+# Projet Goutte d'eau - MVP
+# Dependances Python (versions reelles testees sous Python 3.14)
+
+# Collecte & manipulation de donnees
+requests==2.34.2
+pandas==3.0.6
+numpy==2.5.3
+
+# Modelisation / Machine Learning
+scikit-learn==1.9.1
+joblib==1.6.0
+
+# API
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+
+# Interface graphique de demonstration
+streamlit==1.65.0
+plotly==7.1.0
+
+# Tests
+pytest==9.1.1
+httpx==0.28.1
