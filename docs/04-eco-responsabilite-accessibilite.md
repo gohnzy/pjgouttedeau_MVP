@@ -1,5 +1,25 @@
-# Éco-responsabilité et accessibilité
+# 4. Éco-responsabilité et accessibilité
 
-**Éco-responsabilité (C12).** Le MVP suit les principes du RGESN et du Green IT en limitant les données collectées, les calculs et le stockage : il utilise une régression logistique frugale, entraînée sur CPU, des traitements vectorisés, une collecte incrémentale et une base SQLite légère. Le modèle, dont le ROC-AUC atteint 0,77, est réutilisé et ne nécessite ni GPU ni réentraînements systématiques ; l’empreinte énergétique de l’entraînement et des prédictions pourra être suivie avec CodeCarbon ou un outil équivalent. Le choix AWS est conservé, avec une recommandation de privilégier une région bas-carbone, des instances efficientes (Graviton), des ressources ajustées au besoin, du serverless ou de l’extinction hors production, et un stockage adapté à la durée de conservation. Les émissions et l’usage des ressources devront être suivis ; pour les phases ultérieures, une solution souveraine comme Scaleway ou OVHcloud pourra être réévaluée selon son efficacité énergétique, son mix électrique, sa localisation et ses garanties de sécurité.
+## 4.1 Sobriété
 
-**Accessibilité (C15).** La conception vise les exigences du RGAA et le niveau AA des WCAG 2.1, selon les principes « perceptible, utilisable, compréhensible et robuste ». L’information ne doit pas dépendre uniquement de la couleur ; les contrastes, textes alternatifs, descriptions de graphiques, libellés explicites, unités et messages d’erreur clairs doivent faciliter la compréhension. L’interface doit être utilisable au clavier avec un focus visible, rester lisible après agrandissement et s’appuyer sur une structure HTML sémantique compatible avec les lecteurs d’écran et les principaux navigateurs. La démonstration Streamlit présente déjà le risque par un libellé, une icône et une valeur, et propose des titres structurés, des unités explicites et des composants accessibles au clavier, sans pour autant garantir la conformité AA. Avant une mise en production, un audit RGAA, des tests clavier et lecteurs d’écran, des vérifications automatiques et manuelles ainsi que des essais multi-navigateurs et mobiles seront nécessaires. La sécurité et l’ergonomie restent associées à cette démarche : HTTPS, validation des entrées, absence de données personnelles, parcours simple et retour immédiat sur le résultat.
+Le MVP reprend plusieurs principes du Green IT : limiter les données stockées et éviter les calculs inutiles. Il utilise une régression logistique entraînée sur CPU, des traitements vectorisés, une collecte incrémentale et une base SQLite. Le modèle entraîné est réutilisé; aucun GPU ni réentraînement régulier n'est nécessaire à ce stade.
+
+L'application est actuellement exécutée localement. AWS est une option pour la suite, pas un hébergement déjà en place. Avant ce déploiement, il faudra ajuster les ressources, choisir une région au mix électrique adapté, arrêter les environnements hors production et définir une durée de conservation des données. L'empreinte de l'entraînement et des prédictions pourrait être suivie avec CodeCarbon.
+
+Pour les phases suivantes, AWS pourra être comparé à des fournisseurs comme Scaleway ou OVHcloud, en tenant compte de l'énergie, de la localisation, du coût et des garanties de sécurité.
+
+## 4.2 Accessibilité
+
+La cible est le RGAA et le niveau AA des WCAG 2.1. Le MVP n'a pas encore fait l'objet d'un audit de conformité.
+
+Quelques points à prendre en compte dans l'interface :
+
+- Ne pas transmettre une information uniquement par la couleur; garder des contrastes suffisants.
+- Décrire les graphiques et fournir des textes alternatifs lorsque nécessaire.
+- Utiliser des libellés, unités et messages d'erreur explicites.
+- Permettre la navigation au clavier avec un focus visible et vérifier la lisibilité après agrandissement.
+- Prévoir une structure compatible avec les lecteurs d'écran et les principaux navigateurs.
+
+La démo Streamlit présente le risque avec un libellé, une icône et une valeur. Cela ne suffit pas à démontrer la conformité. Avant une mise en production, il faudra tester au clavier et avec des lecteurs d'écran, compléter par des vérifications automatiques et manuelles, puis essayer l'interface sur mobile et plusieurs navigateurs.
+
+La sécurité est aussi à traiter avant le déploiement : HTTPS, validation des entrées et absence de données personnelles. L'interface doit rester simple et donner un retour clair après une action.

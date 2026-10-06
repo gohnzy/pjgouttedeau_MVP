@@ -1,30 +1,16 @@
 # 2. Architecture fonctionnelle de l'API (MVP)
 
-> Compétences couvertes : **C11** (architecture fonctionnelle adaptée aux
-> besoins métier, contraintes techniques, sécurité, scalabilité, intégration),
-> **C13** (frameworks, plateformes, cloud, IA, IoT).
+> Ce document décrit l'architecture du MVP et les principales évolutions envisagées.
 
 ---
 
 ## 2.1 Principes directeurs
 
-| Principe | Application dans le MVP |
-|---|---|
-| **Séparation des responsabilités** | Collecte, stockage, modèle, API et interface sont des composants distincts. |
-| **Stateless API** | L'API ne conserve pas d'état entre requêtes → scalabilité horizontale. |
-| **Modèle découplé** | Le modèle est un artefact versionné (`.joblib`) chargé au démarrage. |
-| **Données hybrides** | SYNOP Météo-France (ouvertes, traçables) pour le MVP, **capteurs IoT** pour la cible temps réel (cf. EdC-01). |
-| **Évolutivité** | Le MVP (SQLite + VM unique) évolue vers une cible cloud **AWS** (PostgreSQL + conteneurs, cf. budget EdC-01). |
-| **Temps réel** | Architecture conçue pour une mise à jour des prévisions **< 5 min** après réception de nouvelles mesures (exigence EdC-01). |
-| **Sécurité par conception** | Validation des entrées (Pydantic), HTTPS, moindre privilège, RGPD, pas de données personnelles dans le MVP. |
+Le MVP utilise des archives SYNOP, SQLite, un modèle `.joblib` et une API FastAPI lancée localement. Il n'inclut pas encore l'authentification ni HTTPS. La suite pourrait ajouter des capteurs IoT, PostgreSQL/PostGIS, un déploiement cloud et une supervision adaptée à une mise à jour en moins de cinq minutes.
 
 ### Utilisateurs cibles (reprise de l'EdC-01)
 
-L'architecture sert **trois profils** identifiés dans le cahier des charges :
-
-- **Agriculteurs** (*Teddy, maraîcher*) — planification agricole (semis, récolte, irrigation) ;
-- **Gestionnaires de risques / SDIS** (*Chantale, responsable SDIS*) — alertes pour la mobilisation des secours ;
-- **Collectivités / urbanisme** (*Frédérick, urbaniste municipal*) — gestion des eaux pluviales, historique, zones sensibles.
+Les utilisateurs envisagés sont les agriculteurs, les services de secours (SDIS) et les collectivités. Le MVP fournit une démonstration, pas encore un service d'alerte opérationnel.
 
 ---
 
@@ -89,8 +75,6 @@ flowchart TB
     class IOT,AUTH,NOTIF future;
 ```
 
-![Diagramme d'architecture](diagrams/01-architecture.png)
-
 ### Vue de déploiement (cible)
 
 ```mermaid
@@ -108,8 +92,6 @@ flowchart LR
         VOL
     end
 ```
-
----
 
 ## 2.3 Diagramme de composants
 
@@ -165,68 +147,47 @@ flowchart TB
     class SQLITE,ART store;
 ```
 
-![Diagramme de composants](diagrams/02-composants.png)
-
----
-
 ## 2.4 Description des composants
 
-| Composant | Responsabilité | Technologie | Interface |
-|---|---|---|---|
-| **Collecte** | Télécharger, nettoyer, filtrer les données SYNOP | Python, `requests`, `pandas` | Entrée : HTTP(S) ; Sortie : base |
-| **Persistance** | Schéma, lecture/écriture, agrégats | SQLite (MVP) / PostgreSQL (cible) | SQL |
-| **Features** | Transformer une date/un jour en variables modèle | `pandas`, `numpy` | Fonctions Python |
-| **Modèle** | Entraîner, sérialiser, évaluer | `scikit-learn`, `joblib` | Artefacts `.joblib` / `.json` |
-| **API** | Exposer la prédiction de risque de pluie | `FastAPI`, `Uvicorn`, `Pydantic` | REST / JSON |
-| **Interface** | Démontrer le modèle, afficher les indicateurs | `Streamlit`, `plotly` | HTTP (appelle l'API) |
+- **Collecte** : `data_collection.py` télécharge et prépare les données avec `requests` et `pandas`.
+- **Persistance** : `database.py` gère SQLite et les agrégats; PostgreSQL est envisagé pour la suite.
+- **Features et modèle** : `features.py`, `train.py` et `evaluate.py` préparent les variables, entraînent le modèle et calculent les métriques avec `pandas`, `numpy` et `scikit-learn`.
+- **API** : FastAPI expose les prédictions en JSON; le modèle est chargé depuis un fichier `.joblib`.
+- **Interface** : Streamlit appelle l'API et affiche la démonstration et les indicateurs.
 
 ---
 
 ## 2.5 Contrat d'API (REST)
 
-| Méthode | Route | Description | Réponse |
-|---|---|---|---|
-| `GET` | `/health` | Vérifie que le service et le modèle sont chargés | `{status, model_loaded}` |
-| `GET` | `/model-info` | Métadonnées & métriques du modèle | `{station, metrics, trained_at, ...}` |
-| `GET` | `/predict?date=YYYY-MM-DD` | **Risque de pluie** pour une date | `{date, rain_probability, risk_level, ...}` |
+L'API expose trois routes :
+
+- `GET /health` indique l'état du service, si le modèle est chargé et la plage de données disponible.
+- `GET /model-info` renvoie les métriques et métadonnées du modèle.
+- `GET /predict?date=YYYY-MM-DD` estime le risque de pluie pour la date demandée.
 
 Exemple de réponse `/predict` :
 
 ```json
 {
-  "date": "2025-07-14",
-  "station": "Toulouse-Blagnac",
-  "rain_probability": 0.23,
-  "risk_level": "faible",
-  "threshold_mm": 1.0
+	"date": "2025-07-14",
+	"station": "Toulouse-Blagnac",
+	"rain_probability": 0.23,
+	"risk_level": "faible",
+	"threshold_mm": 1.0
 }
 ```
 
 ---
 
-## 2.6 Sécurité, scalabilité, intégration (C11)
+## 2.6 Sécurité, scalabilité, intégration
 
-- **Sécurité** : validation stricte des entrées (Pydantic), HTTPS/TLS en façade,
-  en-têtes de sécurité, pas de données à caractère personnel (RGPD *by design*),
-  journalisation sans secret, gestion des secrets hors du code (variables
-  d'environnement / coffre-fort).
-- **Scalabilité** : API *stateless* → mise à l'échelle horizontale derrière un
-  répartiteur ; base relationnelle managée ; modèle en lecture seule partagé.
-- **Intégration** : API REST standard, documentée automatiquement via
-  **OpenAPI/Swagger** (`/docs`), facilitant l'intégration par des clients tiers
-  (future application mobile des agriculteurs, IoT).
-- **Observabilité** : endpoint `/health`, métriques exposables (Prometheus en
-  cible), journaux structurés.
+- **MVP** : les paramètres sont validés par FastAPI. Le projet ne gère pas de données personnelles et n'inclut pas encore d'authentification ni de configuration HTTPS.
+- **Déploiement cible** : terminer la configuration TLS, gérer les secrets hors du code et ajouter l'authentification avant toute mise en production.
+- **Intégration** : l'API REST expose sa documentation OpenAPI sur `/docs`. L'endpoint `/health` donne un contrôle simple de l'état du service.
+- **Montée en charge** : conteneurs, base managée et supervision sont des pistes pour la suite, pas des composants du MVP actuel.
 
 ---
 
 ## 2.7 Trajectoire MVP → cible
 
-| Dimension | MVP | Cible (industrialisation) |
-|---|---|---|
-| Base de données | SQLite (fichier) | PostgreSQL managé + PostGIS |
-| Déploiement | Processus locaux | Conteneurs Docker + orchestration |
-| Données | 1 station, archive batch | Multi-stations + flux IoT temps réel |
-| Modèle | Régression logistique / arbres | Modèles enrichis (gradient boosting, séries temporelles) |
-| CI/CD | Tests locaux | GitHub Actions + déploiement continu |
-| Supervision | `/health` | Métriques + alertes + traçage |
+Pour l'industrialisation, les principaux chantiers sont le passage de SQLite à PostgreSQL/PostGIS, la conteneurisation, l'ajout de stations et de données IoT, l'automatisation des déploiements et une supervision avec métriques et alertes. Le modèle pourra aussi être comparé à des méthodes de séries temporelles ou de gradient boosting.

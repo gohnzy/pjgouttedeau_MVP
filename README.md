@@ -51,21 +51,21 @@ goutte-deau-mvp/
 ├── config.py                 # Paramètres (station, période, chemins)
 ├── dependencies_versions.txt
 ├── src/
-│   ├── database.py           # Schéma & accès SQLite (C14)
-│   ├── data_collection.py    # Collecte SYNOP → base (C13)
+│   ├── database.py           # Schéma & accès SQLite
+│   ├── data_collection.py    # Collecte SYNOP → base
 │   ├── features.py           # Feature engineering
 │   ├── train.py              # Entraînement & sélection de modèle
 │   ├── evaluate.py           # Métriques & indicateurs qualité
-│   └── api.py                # API FastAPI (C11)
+│   └── api.py                # API FastAPI
 ├── app/
-│   └── streamlit_app.py      # Interface de démonstration (C15)
+│   └── streamlit_app.py      # Interface de démonstration
 ├── tests/test_mvp.py         # Tests pytest
 ├── scripts/smoke_api.py      # Test de fumée de l'API
 └── docs/
-    ├── 01-planification.md         # Planning, budget, schéma directeur (C7–C10)
-    ├── 02-architecture.md          # Diagrammes architecture & composants (C11, C13)
-    ├── 03-documentation-technique.md (C13, C14)
-    └── 04-eco-responsabilite-accessibilite.md # Green IT, hébergement responsable & RGAA/WCAG (C12, C15)
+    ├── 01-planification.md         # Planning, budget, schéma directeur
+    ├── 02-architecture.md          # Diagrammes architecture & composants
+    ├── 03-documentation-technique.md
+    └── 04-eco-responsabilite-accessibilite.md # Green IT, hébergement responsable & RGAA/WCAG
 ```
 
 ---
@@ -96,24 +96,3 @@ Les choix et limites sont détaillés dans
 [`docs/03-documentation-technique.md`](docs/03-documentation-technique.md).
 
 ---
-
-## ✅ Correspondance avec les compétences évaluées
-
-| Compétence                                       | Où                                                                    |
-| ------------------------------------------------ | --------------------------------------------------------------------- |
-| **C7** Organiser le travail de l'équipe-projet   | `docs/01-planification.md`                                            |
-| **C8** Outils de travail collaboratif            | `docs/01-planification.md`                                            |
-| **C9** Budget prévisionnel                       | `docs/01-planification.md`                                            |
-| **C10** Schéma directeur / calendrier            | `docs/01-planification.md`                                            |
-| **C11** Architecture fonctionnelle               | `docs/02-architecture.md`, `src/api.py`                               |
-| **C12** Éco-conception / hébergement responsable | `docs/04-eco-responsabilite-accessibilite.md`                         |
-| **C13** Frameworks, plateformes, IA, IoT         | `src/`, `docs/03-documentation-technique.md`                          |
-| **C14** Conception de la base de données         | `src/database.py`, `docs/03-documentation-technique.md`               |
-| **C15** Interface accessible                     | `app/streamlit_app.py`, `docs/04-eco-responsabilite-accessibilite.md` |
-
----
-
-## 📜 Données & licence
-
-Données : **SYNOP essentielles OMM** — Météo-France, **Licence Ouverte / Open
-Licence 2.0**. Code du projet : usage pédagogique.

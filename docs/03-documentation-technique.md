@@ -1,76 +1,43 @@
 # 3. Documentation technique du MVP
 
-> Compétences couvertes : **C13** (frameworks, plateformes, IA, IoT),
-> **C14** (conception de la base de données).
+> Ce document résume les données, le modèle et les commandes utiles pour lancer le MVP.
 
 ---
 
 ## 3.1 Vue d'ensemble
 
-Le MVP met en œuvre la chaîne complète *données → modèle → API → interface*
-pour estimer le **risque de pluie** à une date donnée, pour la station SYNOP de
-**Toulouse-Blagnac (07630, Occitanie)**, grande région agricole du Sud-Ouest.
+Le MVP estime le risque de pluie pour une date donnée à partir des relevés SYNOP de Toulouse-Blagnac (07630). La chaîne comprend la collecte, le stockage, l'entraînement, l'API et une interface de démonstration.
 
-| Étape | Module | Technologie |
-|---|---|---|
-| Collecte | `src/data_collection.py` | `requests`, `pandas`, `truststore` |
-| Stockage | `src/database.py` | SQLite |
-| Features | `src/features.py` | `pandas`, `numpy` |
-| Entraînement | `src/train.py` | `scikit-learn`, `joblib` |
-| Évaluation | `src/evaluate.py` | `scikit-learn` |
-| API | `src/api.py` | `FastAPI`, `Uvicorn` |
-| Interface | `app/streamlit_app.py` | `Streamlit`, `plotly` |
+Les principaux modules sont `src/data_collection.py` pour la collecte, `src/database.py` pour SQLite, `src/features.py` pour les variables, `src/train.py` et `src/evaluate.py` pour le modèle, `src/api.py` pour l'API et `app/streamlit_app.py` pour l'interface.
 
 ---
 
-## 3.2 Source de données (C13)
+## 3.2 Source de données
 
-- **Jeu de données (MVP)** : *Données SYNOP essentielles OMM* de Météo-France.
-- **Licence** : Licence Ouverte / Open Licence 2.0 (réutilisation libre).
-- **Format** : un fichier CSV compressé (`.gz`) par mois, séparateur `;`,
-  valeurs manquantes codées `mq`, pas de temps **3 heures**.
+- **Source** : données SYNOP essentielles de Météo-France, sous Licence Ouverte 2.0.
+- **Format** : fichiers CSV compressés par mois, séparateur `;`, valeurs manquantes notées `mq`, relevés toutes les 3 heures.
 - **URL** : `.../Txt/Synop/Archive/synop.AAAAMM.csv.gz`.
-- **Variables retenues** : température (`t`), point de rosée (`td`), humidité
-  (`u`), pression mer (`pmer`), vent (`ff`, `dd`), précipitations (`rr1`, `rr3`,
-  `rr24`).
+- **Variables utilisées** : température, point de rosée, humidité, pression, vent et précipitations (`rr1`, `rr3`, `rr24`).
 
-> Les températures SYNOP sont en **Kelvin** (converties en °C) ; les
-> précipitations à valeur négative (`-0.1`, « trace ») sont ramenées à 0.
+> Les températures SYNOP sont en Kelvin et sont converties en °C. Les précipitations négatives (`-0.1`, traces) sont ramenées à 0.
 
-> **Cible (EdC-01).** Les données SYNOP ouvertes servent de *proxy* pour amorcer
-> le MVP. La cible est l'ingestion **temps réel** des **capteurs IoT** déployés
-> sur la zone pilote (50 km²), avec une granularité au km² et une fraîcheur
-> < 5 min — même schéma de données, source enrichie.
+Les données SYNOP servent de point de départ. L'ingestion de capteurs IoT sur une zone pilote de 50 km² reste une évolution prévue, avec une maille visée de 1 km² et une mise à jour en moins de 5 minutes.
 
 ---
 
-## 3.3 Modèle de données (C14)
+## 3.3 Modèle de données
 
 Deux tables SQLite :
 
 ### `observations` (mesures brutes 3 h)
 
-| Colonne | Type | Description |
-|---|---|---|
-| `station_id` | TEXT | Identifiant station (clé primaire 1/2) |
-| `obs_time` | TEXT | Horodatage ISO 8601 UTC (clé primaire 2/2) |
-| `t, td, u, pmer, ff, dd` | REAL | Variables météorologiques |
-| `rr24, rr_best` | REAL | Précipitations (24 h / meilleur cumul court) |
+Cette table contient l'identifiant de station et l'heure UTC (clé primaire composée), les variables météo `t`, `td`, `u`, `pmer`, `ff`, `dd`, ainsi que les précipitations `rr24` et `rr_best`.
 
 ### `daily` (agrégats quotidiens, prêts pour le modèle)
 
-| Colonne | Type | Description |
-|---|---|---|
-| `station_id`, `obs_date` | TEXT | Clé primaire composite |
-| `precip_mm` | REAL | Cumul quotidien de précipitations |
-| `t_mean, t_min, t_max` | REAL | Températures du jour |
-| `u_mean, pmer_mean, ff_mean` | REAL | Humidité / pression / vent moyens |
-| `is_rainy` | INTEGER | **Cible** : 1 si `precip_mm > 1,0 mm` |
+Cette table utilise la station et la date comme clé. Elle stocke le cumul de pluie, les températures minimale/moyenne/maximale, l'humidité, la pression et le vent moyens. `is_rainy` vaut 1 si `precip_mm` dépasse 1 mm.
 
-**Choix de conception** : séparation *brut / agrégé* (traçabilité + recalcul
-idempotent), clés primaires naturelles (idempotence des `UPSERT`), index sur
-`obs_date` (requêtes temporelles). La cible `is_rainy` matérialise la règle
-métier (seuil de pluie paramétrable).
+La séparation entre mesures brutes et agrégats permet de recalculer les données quotidiennes. Les clés naturelles rendent les nouvelles collectes idempotentes.
 
 ---
 
@@ -81,83 +48,53 @@ download_month(year, month)  →  filtre station  →  parse variables
         →  upsert_observations()  →  build_daily()  (agrégation + cible)
 ```
 
-Caractéristiques : **idempotent** (`ON CONFLICT ... DO UPDATE`), **résilient**
-(mois manquant ignoré), **compatible proxy d'entreprise** (`truststore` =
-magasin de certificats du système). Volume collecté : **2015–2024, 29 181
-observations → 3 653 jours**, dont **~22,5 % de jours pluvieux**.
+La collecte peut être relancée sans créer de doublons (`ON CONFLICT ... DO UPDATE`). Un mois indisponible est ignoré. `truststore` permet d'utiliser le magasin de certificats du système. Le jeu utilisé couvre 2015–2024 : 29 181 observations regroupées en 3 653 jours, dont environ 22,5 % de jours pluvieux.
 
 ---
 
 ## 3.5 Feature engineering (`features.py`)
 
-Le modèle réalise une **prévision à J+1** : il estime la pluie d'une date à
-partir de variables **antérieures** uniquement (pas de fuite de données).
+Le modèle estime la pluie du lendemain à partir des jours précédents. Les variables du jour prédit ne sont donc pas utilisées.
 
-| Groupe | Variables | Rôle |
-|---|---|---|
-| Saisonnalité | `doy_sin/cos`, `doy_sin2/cos2` | Climatologie (cycle annuel, 2 harmoniques) |
-| Persistance | `precip_lag1`, `rained_lag1`, `precip_roll3` | Pluie récente (forte autocorrélation) |
-| Dynamique | `pmer_lag1`, `pmer_trend` | Baisse de pression → passage pluvieux |
-| État | `u_lag1`, `t_mean_lag1` | Humidité / température de la veille |
+- **Saisonnalité** : cycle annuel (`doy_sin/cos` et deuxième harmonique).
+- **Pluie récente** : cumul et présence de pluie la veille, cumul glissant sur trois jours.
+- **Pression** : valeur de la veille et tendance.
+- **Conditions de la veille** : humidité et température moyenne.
 
-À l'inférence, l'API reconstruit ces variables depuis la base. Si l'historique
-antérieur est trop ancien (> 7 jours) ou absent, le modèle bascule sur une
-**estimation climatologique** (saisonnalité seule + médianes d'entraînement).
+L'API reconstruit les variables depuis la base. Si l'historique manque ou date de plus de 7 jours, elle utilise une estimation saisonnière et les médianes calculées à l'entraînement.
 
 ---
 
 ## 3.6 Modèle et entraînement
 
-- **Split temporel** : entraînement 2015–2022 (2 922 jours), test 2023–2024
-  (731 jours) → évaluation de la généralisation dans le temps.
-- **Sélection** : validation croisée temporelle (`TimeSeriesSplit`, 5 plis) sur
-  le ROC-AUC, entre **régression logistique** (équilibrée) et
-  **HistGradientBoosting**.
-- **Modèle retenu** : régression logistique (CV ROC-AUC 0,752 vs 0,730).
-- **Calibration** : `CalibratedClassifierCV` (sigmoïde) → probabilités fiables.
-- **Artefacts** : `models/rain_model.joblib`, `models/metrics.json`.
+- **Découpage** : entraînement sur 2015–2022 (2 922 jours), test sur 2023–2024 (731 jours).
+- **Comparaison** : régression logistique et `HistGradientBoosting`, avec `TimeSeriesSplit` en 5 plis.
+- **Résultat** : la régression logistique est retenue (ROC-AUC moyen de 0,752, contre 0,730).
+- **Calibration** : sigmoïde avec `CalibratedClassifierCV`.
+- **Fichiers produits** : `models/rain_model.joblib` et `models/metrics.json`.
 
 ---
 
 ## 3.7 Évaluation et indicateurs qualité (test 2023–2024)
 
-| Indicateur | Seuil 0,5 | Seuil optimal (0,222) | Lecture |
-|---|---:|---:|---|
-| **ROC-AUC** | **0,773** | 0,773 | Bon pouvoir discriminant (> 0,75 visé) |
-| PR-AUC | 0,501 | 0,501 | vs taux de base 0,243 → nette valeur ajoutée |
-| Brier score | 0,156 | 0,156 | Probabilités bien calibrées (bas = mieux) |
-| Accuracy | 0,767 | 0,729 | |
-| Précision | 0,559 | 0,465 | |
-| Rappel | 0,186 | **0,751** | Le seuil optimal privilégie la détection des pluies |
-| F1 | 0,280 | **0,575** | |
+Le ROC-AUC vaut **0,773**, la PR-AUC **0,501** (taux de base : 0,243) et le Brier score **0,156**. Au seuil de 0,5, accuracy, précision, rappel et F1 sont respectivement de 0,767, 0,559, 0,186 et 0,280. Au seuil de 0,222, ils sont de 0,729, 0,465, 0,751 et 0,575.
 
 **Matrice de confusion (seuil optimal)** : VN=398, FP=153, FN=44, VP=133.
 
 > **Interprétation.** Au seuil 0,5, le modèle est prudent (peu de fausses
-> alertes mais rate des pluies, rappel 19 %). Pour un usage agricole et de
-> prévention des inondations, le **seuil optimal (indice de Youden ≈ 0,22)** est
-> préférable : il détecte **75 % des jours pluvieux**, au prix de plus de
-> fausses alertes — compromis adapté à la décision d'irrigation/récolte et à la
-> vigilance inondation.
+> Le rappel est faible au seuil de 0,5. Un seuil proche de 0,22 détecte environ 75 % des jours pluvieux, mais entraîne davantage de fausses alertes. Ce compromis doit être revu avant tout usage opérationnel.
 
 ### Lien avec les KPIs cibles de l'EdC-01
 
-Le cahier des charges (EdC-01) fixe des cibles produit en **RMSE / MAE**
-(quantité de pluie), **taux d'alertes valides > 90 %**, **granularité km²** et
-**fraîcheur < 5 min**. Le MVP constitue la **première brique** : il valide la
-**prévision d'occurrence** (classification pluie/sec), mesurée par ROC-AUC /
-PR-AUC / Brier. La trajectoire vers les cibles EdC-01 :
+Le MVP traite l'occurrence de pluie, pas encore la quantité. Il ne satisfait donc pas les objectifs de maille, de fraîcheur ou de fiabilité des alertes définis dans le cahier des charges.
 
-| Cible EdC-01 | Statut MVP | Prochaine étape |
-|---|---|---|
-| RMSE / MAE (quantité de pluie, mm) | Occurrence validée (classification) | Ajouter un modèle de **régression** de la lame d'eau |
-| Granularité km² | 1 station (ponctuel) | Densifier via **capteurs IoT** + interpolation spatiale |
-| Fraîcheur < 5 min | Batch (archive) | Ingestion **temps réel** + ordonnancement |
-| Alertes valides > 90 % | Rappel 75 % / précision 47 % | Enrichir les features (radar, modèles numériques), ré-étalonner le seuil |
+- **Quantité de pluie (RMSE/MAE)** : le MVP classe les jours; une régression reste à développer.
+- **Maille de 1 km²** : le MVP couvre une station; il faudra ajouter des capteurs et une méthode d'interpolation.
+- **Fraîcheur sous 5 min** : les données sont traitées en batch; une ingestion temps réel est nécessaire.
+- **Alertes valides à plus de 90 %** : la précision mesurée est de 47 % au seuil retenu; il faudra enrichir les données et réévaluer le seuil.
 
 > Le **Brier score** (0,156) est l'analogue probabiliste du MAE : il mesure déjà
-> la qualité de calibration des probabilités, préfigurant le suivi RMSE/MAE sur
-> la quantité de pluie.
+> Le Brier score mesure la qualité des probabilités; il ne remplace pas le RMSE ou le MAE sur les quantités de pluie.
 
 ---
 
@@ -165,11 +102,7 @@ PR-AUC / Brier. La trajectoire vers les cibles EdC-01 :
 
 Base : `http://127.0.0.1:8000` — documentation interactive : `/docs` (OpenAPI).
 
-| Méthode | Route | Paramètre | Réponse |
-|---|---|---|---|
-| GET | `/health` | — | état du service + plage de données |
-| GET | `/model-info` | — | métriques et métadonnées du modèle |
-| GET | `/predict` | `date=YYYY-MM-DD` | risque de pluie |
+Les routes principales sont `GET /health` (état du service et plage de données), `GET /model-info` (métriques et métadonnées) et `GET /predict?date=YYYY-MM-DD` (risque pour une date).
 
 Exemple :
 
@@ -179,11 +112,11 @@ curl "http://127.0.0.1:8000/predict?date=2024-07-14"
 
 ```json
 {
-  "date": "2024-07-14",
-  "station": "Toulouse-Blagnac",
-  "rain_probability": 0.1517,
-  "risk_level": "faible",
-  "based_on_history": true
+	"date": "2024-07-14",
+	"station": "Toulouse-Blagnac",
+	"rain_probability": 0.1517,
+	"risk_level": "faible",
+	"based_on_history": true
 }
 ```
 
