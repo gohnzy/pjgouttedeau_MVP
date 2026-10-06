@@ -139,6 +139,34 @@ def replace_paragraphs(document: Document) -> None:
     ]
     add_table(document, ("Indicateur", "Objectif", "Résultat test", "Statut"), quality_rows)
 
+    document.add_heading("Étude d'hébergements responsables", level=2)
+    document.add_paragraph(
+        "Comparaison documentaire consultée le 6 octobre 2026. Les PUE mondiaux ne sont pas "
+        "attribués à un site régional; le coût Scaleway est une référence compute, pas un TCO "
+        "complet. Les offres et certifications dépendent des régions et produits souscrits."
+    )
+    hosting_rows = [
+        ("AWS Paris / eu-west-3", "PUE moyen mondial 2025 : 1,14; pas de valeur Paris ni de mix énergétique régional publié.", "ISO 27001/14001 et autres attestations selon service. Région UE, mais groupe américain; analyser la juridiction.", "À calculer au Pricing Calculator eu-west-3; ne pas transposer le tarif US East."),
+        ("AWS Stockholm / eu-north-1", "PUE moyen mondial 2025 : 1,14; pas de valeur Stockholm ni d'intensité carbone régionale publiée.", "Même catalogue AWS; région UE, avec les mêmes réserves de juridiction du groupe.", "À calculer au Pricing Calculator eu-north-1; tarif régional non vérifié ici."),
+        ("OVHcloud France", "PUE FY25 : Roubaix 1,30; Gravelines 1,21; Strasbourg 1,19. REF 100 % pour les sites listés; pas de valeur 3-AZ Paris dans le rapport.", "ISO 50001; les certifications et SecNumCloud concernent des offres précises. Société française, vérifier service/contrat.", "Tarif dynamique selon instance/région; devis identique à demander."),
+        ("Scaleway Paris / PAR-1", "PUE 2024 : DC2 1,45; DC3 1,39; DC4 1,44; DC5 1,25. Garanties d'origine éoliennes/hydrauliques déclarées à 100 %.", "ISO/IEC 27001:2022, HDS; SecNumCloud en cours. Vérifier les sous-traitants et les termes contractuels.", "BASIC3-X2C-4G, 2 vCPU/4 Go : 0,03945 €/h, env. 28,79 €/mois à 730 h; stockage et IPv4 attachée exclus."),
+    ]
+    add_table(document, ("Option", "Énergie / PUE", "Certifications / souveraineté", "Coût indicatif"), hosting_rows)
+    document.add_paragraph(
+        "Recommandation : le MVP reste local (0 € de cloud engagé). Pour un pilote, comparer "
+        "Scaleway Paris et OVHcloud France à AWS Paris sur une configuration, disponibilité, "
+        "sauvegarde et trafic identiques. Le PDF EdC-01 fourni ne prescrit pas AWS. Les PUE "
+        "cités sont datés et non directement comparables entre méthodes et années."
+    )
+    document.add_paragraph(
+        "Sources : https://sustainability.aboutamazon.com/products-services/aws-cloud ; "
+        "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/ ; "
+        "https://corporate.ovhcloud.com/en/sustainability/environment/ ; "
+        "https://www.ovhcloud.com/sites/default/files/external_files/kpis_fy25.pdf ; "
+        "https://www.scaleway.com/en/environmental-leadership/ ; "
+        "https://www.scaleway.com/en/pricing/virtual-instances/ ."
+    )
+
     document.add_heading("Diagrammes exportés", level=2)
     add_figure(document, DIAGRAMS / "architecture.png", "Architecture du MVP livré.")
     add_figure(document, DIAGRAMS / "composants.png", "Composants logiciels et dépendances.")
