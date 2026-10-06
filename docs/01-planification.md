@@ -31,26 +31,17 @@ Le MVP ne vise pas encore ces performances produit. Il vérifie que la chaîne f
 
 ## 1.2 Méthode de gestion de projet retenue (C7)
 
-**Scrum avec Jira**, comme prévu dans l'étude de cas 1. Les essais sur les données et le modèle peuvent faire évoluer les priorités; des sprints courts permettent de revoir le travail régulièrement.
+**Scrum avec des sprints hebdomadaires** est retenu pour ce cadrage de dix semaines. L'EdC-01 compare plusieurs méthodes et retient Scrum, mais ne précise ni Jira ni la durée des sprints. Le dépôt GitHub est l'outil effectivement disponible pour le code et les revues; aucun tableau Jira n'est fourni comme preuve.
 
-- **Sprints de 2 semaines**, cérémonies : planning, daily stand-up (15 min),
-  revue de sprint, rétrospective.
-- **Backlog priorisé** (cf. §1.4) géré dans **Jira**, découpage en _epics_
-  BACK / FRONT.
+- **Sprints de 1 semaine**, avec planification, point d'avancement, revue et rétrospective.
+- **Backlog priorisé** (cf. §1.4), structuré par lots BACK / FRONT et conservé dans la documentation du dépôt.
 - **Définition of Done (DoD)** : code revu (pull request), testé, documenté,
   déployé en environnement de recette.
 - **Gestion des risques** : revue hebdomadaire du registre des risques (§1.8).
 
-### Équipe-projet et rôles (reprise de l'EdC-01)
+### Équipe-projet et rôles
 
-L'EdC-01 a dimensionné l'équipe suivante (coûts annuels chargés indiqués au
-budget, §1.6). Les ETP ci-dessous correspondent à la **phase MVP**.
-
-L'équipe prévue pour le MVP comprend un chef de projet (0,6 ETP), un ingénieur IoT pour le déploiement, deux Data Scientists, deux développeurs et un UX designer (0,5 ETP). Le RSSI et le DPO interviennent en appui. Les Data Scientists et développeurs construisent la chaîne logicielle; l'ingénieur IoT prépare le pilote toulousain.
-
-> Le MVP mobilise prioritairement les **Data Scientists** et **Développeurs**
-> (chaîne données → modèle → API → interface) ; l'**Ingénieur IoT** prépare le
-> déploiement des capteurs sur la zone pilote de Toulouse.
+L'EdC-01 énumère chef de projet, ingénieur IoT, data scientists, UX designer et développeurs, sans effectifs, ETP ni coûts. Le MVP logiciel présenté ici mobilise un chef de projet, un data scientist, un développeur données, un développeur API/interface, un UX designer, un profil QA/DevOps et un appui RSSI/DPO selon le tableau de budget. L'ingénierie IoT et l'achat de capteurs sont hors du MVP logiciel et relèvent de la phase ultérieure.
 
 ---
 
@@ -106,43 +97,54 @@ Le MVP couvre les lots prioritaires suivants :
 
 ## 1.5 Schéma directeur & calendrier
 
-Le MVP couvre les phases P0 à P3, sur dix semaines : cadrage en S1, données et analyse en S2–S4, modèle/API/interface en S5–S8, puis recette et documentation en S9–S10. L'industrialisation (automatisation, authentification, notifications, cloud et IoT) est prévue en S11–S20. La généralisation à plusieurs zones vient ensuite.
+Le MVP dure **10 semaines** (10 sprints hebdomadaires). Les phases P0 à P3 désignent : P0 cadrage et socle (S1), P1 données et qualité (S2–S3), P2 modèle et services (S4–S7), P3 recette et transfert (S8–S10). Le Gantt, les durées, les contenus et les ressources figurent dans [`diagrams/planning-gantt.md`](diagrams/planning-gantt.md). Les lots d'industrialisation, cloud et IoT sont une suite possible, pas le calendrier ni le budget de ce MVP.
+
+| Sprint | Phase | Durée     | Contenu et résultat attendu                                     | Ressources principales                    |
+| ------ | ----- | --------- | --------------------------------------------------------------- | ----------------------------------------- |
+| S1     | P0    | 1 semaine | Cadrage, backlog, risques, dépôt et critères d'acceptation      | Chef de projet, développeur API, RSSI/DPO |
+| S2     | P1    | 1 semaine | Source SYNOP, schéma SQLite, tests de parsing                   | Data scientist, développeur données       |
+| S3     | P1    | 1 semaine | Collecte incrémentale, agrégats, contrôle des données           | Data scientist, développeur données       |
+| S4     | P2    | 1 semaine | Analyse exploratoire, protocole de découpage temporel, baseline | Data scientist                            |
+| S5     | P2    | 1 semaine | Variables, entraînement comparatif et calibration               | Data scientist, développeur données       |
+| S6     | P2    | 1 semaine | Validation, choix du seuil, métriques et artefacts              | Data scientist, QA/DevOps                 |
+| S7     | P2    | 1 semaine | API typée, prédiction unitaire et groupée                       | Développeur API/interface, data scientist |
+| S8     | P3    | 1 semaine | Interface de démonstration et revue d'accessibilité             | Développeur API/interface, UX designer    |
+| S9     | P3    | 1 semaine | Tests, CI, documentation, export des données et diagrammes      | QA/DevOps, développeurs, chef de projet   |
+| S10    | P3    | 1 semaine | Recette, indicateurs, bilan, présentation et transfert          | Équipe MVP, chef de projet                |
 
 ---
 
 ## 1.6 Outils de travail collaboratif
 
-Les outils prévus sont Jira pour le backlog, GitHub ou GitLab pour le code et les revues, et leurs outils CI pour lancer les tests. La documentation reste dans le dépôt; Teams ou Mattermost servent aux échanges, et Nextcloud au partage documentaire. La branche `main` est protégée : pas de push direct, revue et CI verte requises.
+Le dépôt GitHub héberge le code et la documentation. Le workflow du dépôt exécute les tests avec GitHub Actions. Aucun espace Jira, Teams, Mattermost ou Nextcloud n'est fourni dans les éléments vérifiables; ces outils ne sont donc pas présentés comme paramétrés. La protection de `main` est une configuration à activer dans les réglages du dépôt, pas une preuve présente dans le code.
 
-**Paramétrage clé** : protection de la branche `main` (pas de push direct,
-revue obligatoire, CI verte requise), synchronisation Jira ↔ dépôt Git
-(références de tickets dans les commits), conventions de commits, droits
-d'accès par rôle (principe du moindre privilège).
+Pour matérialiser C8, les tickets doivent être créés dans GitHub Projects (ou l'outil réellement retenu), liés aux PR et accompagnés d'une capture du tableau. Cette preuve d'usage reste à fournir manuellement.
 
 ---
 
 ## 1.7 Budget prévisionnel
 
-Le budget reprend celui établi dans l'EdC-01 : un **budget annuel de
-fonctionnement de 550 000 €** pour le projet complet, dont un **budget MVP de
-147 000 €**.
+Le budget du MVP est dérivé des 10 semaines de planning ci-dessus. Les TJM sont des hypothèses de chiffrage, pas des tarifs présents dans l'EdC-01 ni des dépenses réellement engagées.
 
-### Budget annuel du projet complet (rappel EdC-01)
+| Rôle                          | ETP moyen sur 10 semaines | Jours-personnes | TJM HT |      Coût HT |
+| ----------------------------- | ------------------------: | --------------: | -----: | -----------: |
+| Chef de projet                |                       0,2 |              10 |  600 € |      6 000 € |
+| Data scientist                |                       0,8 |              40 |  600 € |     24 000 € |
+| Développeur données           |                       0,8 |              40 |  550 € |     22 000 € |
+| Développeur API/interface     |                       0,6 |              30 |  550 € |     16 500 € |
+| UX designer                   |                       0,2 |              10 |  500 € |      5 000 € |
+| QA / DevOps                   |                       0,3 |              15 |  500 € |      7 500 € |
+| Appui RSSI / DPO              |                       0,1 |               5 |  600 € |      3 000 € |
+| **Total ressources humaines** |                   **3,0** |         **150** |        | **84 000 €** |
 
-Le budget annuel prévisionnel est de **550 000 €** : 410 000 € pour l'équipe, 95 000 € pour le cloud, les capteurs et les licences, et 45 000 € pour la formation, la communication, la maintenance et l'énergie.
+| Poste complémentaire MVP | Hypothèse                                                              | Coût budgété |
+| ------------------------ | ---------------------------------------------------------------------- | -----------: |
+| Cloud                    | Exécution locale du MVP; aucun hébergement cloud déployé               |          0 € |
+| Licences                 | Dépendances open source; pas de licence commerciale identifiée         |          0 € |
+| Capteurs IoT             | Non achetés ni déployés dans le MVP; lot post-MVP à chiffrer sur devis |          0 € |
+| **Total MVP estimatif**  | **84 k€ RH + coûts directs réellement retenus**                        | **84 000 €** |
 
-### Budget du MVP (147 000 €)
-
-Le MVP mobilise une partie de l'équipe sur ~3 mois et déploie la zone pilote
-(Toulouse, 50 km²).
-
-Le budget MVP est estimé à **147 000 €** : environ 84 000 € de ressources humaines, 50 000 € pour les capteurs, 8 000 € de cloud et 5 000 € de licences et outils.
-
-> **Note MVP pédagogique.** La brique logicielle réalisée dans ce dépôt
-> (collecte SYNOP, modèle, API, interface) n'engage **aucun coût réel** :
-> données en Licence Ouverte, exécution locale, outils open-source. Les montants
-> ci-dessus correspondent au budget _projet_ tel que cadré en EdC-01, pour
-> conserver la cohérence budgétaire entre les deux études de cas.
+Les montants de **147 k€**, **550 k€ annuels**, **50 k€ de capteurs**, **8 k€ de cloud** et **5 k€ de licences** figurant dans une version antérieure d'EdC-02 ne sont pas justifiés par le PDF EdC-01 fourni : ce dernier présente des catégories de dépenses, des rôles, un backlog et une rubrique Gantt, sans ces montants ni tarifs. Ils sont donc retirés et ne sont pas attribués à EdC-01. Les coûts de déploiement cloud et IoT resteront à chiffrer après choix du dimensionnement et obtention de devis.
 
 ---
 

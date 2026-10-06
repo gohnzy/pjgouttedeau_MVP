@@ -53,11 +53,11 @@ def compute_metrics(y_true, y_prob, threshold: float = 0.5) -> dict:
     }
 
 
-def evaluate_probabilities(y_true, y_prob) -> dict:
-    """Metriques au seuil 0,5 et au seuil optimal (Youden)."""
-    thr_opt = optimal_threshold(y_true, y_prob)
+def evaluate_probabilities(y_true, y_prob, threshold: float) -> dict:
+    """Metriques au seuil 0,5 et au seuil preselectionne sur la validation."""
+    selected_threshold = float(threshold)
     return {
         "at_0.5": compute_metrics(y_true, y_prob, 0.5),
-        "at_optimal": compute_metrics(y_true, y_prob, thr_opt),
-        "optimal_threshold": round(thr_opt, 4),
+        "at_selected": compute_metrics(y_true, y_prob, selected_threshold),
+        "selected_threshold": round(selected_threshold, 4),
     }

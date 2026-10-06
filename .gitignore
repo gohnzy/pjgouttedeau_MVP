@@ -8,10 +8,15 @@ env/
 
 # Donnees & modeles (regenerables, ne pas versionner)
 data/*.db
+!data/goutte_deau.db
 data/*.csv
+!data/daily.csv
+!data/model_dataset.csv
 data/raw/
 models/*.joblib
+!models/rain_model.joblib
 models/*.json
+!models/metrics.json
 
 # Tests / caches
 .pytest_cache/
@@ -21,6 +26,7 @@ models/*.json
 Thumbs.db
 .vscode/
 .idea/
+.~lock.*#
 
 # Logs
 *.log

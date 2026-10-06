@@ -164,6 +164,7 @@ L'API expose trois routes :
 - `GET /health` indique l'état du service, si le modèle est chargé et la plage de données disponible.
 - `GET /model-info` renvoie les métriques et métadonnées du modèle.
 - `GET /predict?date=YYYY-MM-DD` estime le risque de pluie pour la date demandée.
+- `POST /predict/batch` accepte `{"dates": ["YYYY-MM-DD", ...]}` et renvoie les mêmes objets pour plusieurs dates (31 maximum).
 
 Exemple de réponse `/predict` :
 
@@ -171,11 +172,17 @@ Exemple de réponse `/predict` :
 {
 	"date": "2025-07-14",
 	"station": "Toulouse-Blagnac",
+	"region": "Occitanie",
 	"rain_probability": 0.23,
-	"risk_level": "faible",
-	"threshold_mm": 1.0
+	"risk_level": "modéré",
+	"threshold_mm": 1.0,
+	"alert_probability_threshold": 0.2124,
+	"based_on_history": true,
+	"note": "Prévision fondée sur les antécédents météorologiques observés."
 }
 ```
+
+La réponse est validée par un modèle Pydantic. Les niveaux utilisent le seuil retenu sur la validation pour séparer `faible` de `modéré`; `threshold_mm` désigne séparément le seuil de pluie servant à définir la cible.
 
 ---
 

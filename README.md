@@ -1,4 +1,4 @@
-# 🚀 Démarrage rapide
+# Démarrage rapide
 
 ```bash
 # 1. Environnement
@@ -8,6 +8,9 @@ pip install -r dependencies_versions.txt
 
 # 2. Collecte des données SYNOP Météo-France (+ agrégats quotidiens)
 python -m src.data_collection --start 2015 --end 2024
+
+# Force le téléchargement des mois déjà présents (facultatif)
+python -m src.data_collection --start 2015 --end 2024 --refresh
 
 # 3. Entraînement + évaluation du modèle
 python -m src.train
@@ -24,27 +27,30 @@ pytest -q
 
 ---
 
-## 🧩 Fonctionnalités du MVP
+## Fonctionnalités du MVP
 
 - **Collecte** des données SYNOP essentielles OMM (Licence Ouverte) et stockage **SQLite**.
 - **Modèle** de prévision de pluie à J+1 (régression logistique calibrée) :
   saisonnalité + antécédents météorologiques.
 - **API REST FastAPI** : risque de pluie en fonction d'une date (`/predict`).
-- **Interface Streamlit** accessible : jauge de risque, courbe sur 14 jours, indicateurs qualité.
+- **Interface Streamlit** de démonstration : jauge de risque, courbe sur 14 jours (appel groupé), indicateurs qualité. La conformité RGAA/WCAG n'a pas été auditée.
 - **Tests** automatisés (pytest) et **documentation** complète.
 
 ### Résultats du modèle (test 2023–2024)
 
-| Indicateur                       | Valeur                     |
-| -------------------------------- | -------------------------- |
-| ROC-AUC                          | **0,773**                  |
-| PR-AUC                           | 0,501 (taux de base 0,243) |
-| Brier score                      | 0,156                      |
-| F1 / Rappel (seuil optimal 0,22) | 0,575 / **0,751**          |
+| Indicateur                            | Valeur                                         |
+| ------------------------------------- | ---------------------------------------------- |
+| ROC-AUC                               | **0,7664**                                     |
+| PR-AUC                                | 0,5043 (taux de base 0,2496)                   |
+| Brier score                           | 0,1601                                         |
+| Brier baseline (taux de base)         | 0,1882                                         |
+| F1 / rappel (seuil validation 0,2124) | 0,551 / **0,745**                              |
+| Précision des alertes                 | 0,437 (objectif > 0,90 non atteint)            |
+| CodeCarbon entraînement               | 0,0027 gCO₂e estimés pour une exécution locale |
 
 ---
 
-## 🗂️ Structure du dépôt
+## Structure du dépôt
 
 ```
 goutte-deau-mvp/
@@ -74,25 +80,42 @@ goutte-deau-mvp/
 
 Le projet a été mené dans l'ordre suivant :
 
-1. **Cadrage & planification** — reprise de l'EdC-01 : méthode **Scrum / Jira**,
-   équipe-projet, backlog priorisé, WBS, Gantt, schéma directeur, budget
-   (**MVP ≈ 147 k€**, 550 k€ annuels), outils collaboratifs.
+1. **Cadrage & planification** — Scrum est la méthode retenue dans l'EdC-01; la durée des sprints, le budget et l'outillage sont des hypothèses précisées ici. Le MVP est cadré sur 10 semaines et son budget RH recalculé est de 84 k€.
    → [`docs/01-planification.md`](docs/01-planification.md).
-2. **Architecture** — diagrammes d'architecture et de composants (sources
-   SYNOP + capteurs IoT cible, notifications multicanal, 3 profils
-   utilisateurs), contrat d'API, sécurité/scalabilité.
-   → [`docs/02-architecture.md`](docs/02-architecture.md).
-3. **Données** — identification de la source pertinente (SYNOP Météo-France),
-   collecte idempotente et stockage SQLite (29 181 observations → 3 653 jours).
+2. **Architecture** — diagrammes d'architecture, composants et déploiement en Mermaid; GitHub les affiche directement. Les sources sont dans [`docs/diagrams`](docs/diagrams/) et les explications dans [`docs/02-architecture.md`](docs/02-architecture.md).
+3. **Données** — SYNOP Météo-France, collecte idempotente et incrémentale, SQLite (29 181 observations → 3 653 jours).
 4. **Modèle** — prévision de pluie à J+1 (saisonnalité + persistance + pression),
    sélection par validation croisée temporelle, calibration des probabilités.
-5. **Évaluation** — ROC-AUC, PR-AUC, Brier, matrice de confusion, seuil optimal,
-   et pont vers les KPIs cibles RMSE/MAE de l'EdC-01.
-6. **API** — FastAPI exposant `/predict`, `/health`, `/model-info` (OpenAPI).
-7. **Interface** — démonstration Streamlit accessible avec indicateurs qualité.
+5. **Évaluation** — seuil sélectionné sur la validation 2022, test final 2023–2024 et comparaison Brier au taux de base et à la persistance.
+6. **API** — FastAPI avec réponses Pydantic : `/predict`, `/predict/batch`, `/health`, `/model-info`.
+7. **Interface** — démonstration Streamlit; aucune conformité d'accessibilité n'est revendiquée avant audit.
 8. **Documentation** — technique, éco-responsabilité, accessibilité, tests.
 
-Les choix et limites sont détaillés dans
+Le PDF EdC-01 fourni confirme les besoins, les rôles, le backlog et le choix Scrum; il ne contient pas les montants 147 k€/550 k€, le choix AWS, Jira ni une durée de sprint. Ces éléments précédemment attribués à EdC-01 ont été retirés ou requalifiés, sans modifier EdC-01. Les choix et limites sont détaillés dans
 [`docs/03-documentation-technique.md`](docs/03-documentation-technique.md).
+
+L'étude d'hébergement responsable est dans [`docs/05-hebergement-responsable.md`](docs/05-hebergement-responsable.md). Le modèle et les métriques versionnés, ainsi qu'un export de `daily`, permettront de vérifier le service hors ligne sans relancer la collecte réseau. Les captures de `/docs` et Streamlit et la preuve d'un vrai backlog collaboratif restent à joindre après génération/configuration dans l'environnement GitHub.
+
+## Diagrammes
+
+Les diagrammes sont lisibles directement dans GitHub et leurs PNG sont intégrés au DOCX :
+
+![Architecture du MVP](docs/diagrams/architecture.png)
+
+![Composants logiciels](docs/diagrams/composants.png)
+
+![Déploiement actuel et cible](docs/diagrams/deploiement.png)
+
+![Gantt du MVP](docs/diagrams/planning-gantt.png)
+
+Pour régénérer les annexes, installer `requirements-docs.txt`, puis lancer `python scripts/render_diagrams.py` et `python scripts/update_docx_deliverable.py`. Les captures exigent aussi `python -m playwright install chromium`, l'API et Streamlit démarrés, puis `python scripts/capture_screenshots.py`.
+
+## Captures
+
+![Documentation interactive FastAPI](docs/screenshots/api-docs.png)
+
+![Interface Streamlit après estimation](docs/screenshots/streamlit-desktop.png)
+
+![Interface Streamlit sur mobile](docs/screenshots/streamlit-mobile.png)
 
 ---

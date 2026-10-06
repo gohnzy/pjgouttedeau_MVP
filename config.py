@@ -36,6 +36,7 @@ YEAR_END = 2024
 # --- Definition de la cible ----------------------------------------------
 # Jour "pluvieux" si le cumul quotidien de precipitations (mm) depasse ce seuil.
 RAIN_THRESHOLD_MM = 1.0
+EXPECTED_PRECIP_REPORTS_PER_DAY = 8  # 8 relevés SYNOP de 3 h en couverture journalière complète.
 
 # --- Divers ---------------------------------------------------------------
 RANDOM_STATE = 42

@@ -1,0 +1,64 @@
+{
+  "station_id": "07630",
+  "station_name": "Toulouse-Blagnac",
+  "region": "Occitanie",
+  "trained_at": "2026-10-06T13:04:16+00:00",
+  "rain_threshold_mm": 1.0,
+  "n_train": 2742,
+  "n_test": 629,
+  "test_from_year": 2023,
+  "validation_year": 2022,
+  "selected_model": "logreg",
+  "cv_roc_auc": {
+    "logreg": 0.7411,
+    "hist_gb": 0.7203
+  },
+  "baseline_brier": {
+    "training_base_rate": 0.1882,
+    "rain_previous_day": 0.2957
+  },
+  "test_metrics": {
+    "at_0.5": {
+      "threshold": 0.5,
+      "base_rate": 0.2496,
+      "roc_auc": 0.7664,
+      "pr_auc": 0.5043,
+      "brier": 0.1601,
+      "accuracy": 0.7583,
+      "precision": 0.549,
+      "recall": 0.1783,
+      "f1": 0.2692,
+      "confusion_matrix": {
+        "tn": 449,
+        "fp": 23,
+        "fn": 129,
+        "tp": 28
+      }
+    },
+    "at_selected": {
+      "threshold": 0.2124,
+      "base_rate": 0.2496,
+      "roc_auc": 0.7664,
+      "pr_auc": 0.5043,
+      "brier": 0.1601,
+      "accuracy": 0.6963,
+      "precision": 0.4366,
+      "recall": 0.7452,
+      "f1": 0.5506,
+      "confusion_matrix": {
+        "tn": 321,
+        "fp": 151,
+        "fn": 40,
+        "tp": 117
+      }
+    },
+    "selected_threshold": 0.2124
+  },
+  "emissions": {
+    "tool": "CodeCarbon",
+    "version": "3.3.1",
+    "scope": "processus d'entra\u00eenement local",
+    "estimated_g_co2e": 0.0027,
+    "method": "estimation logicielle \u00e9nergie CPU/RAM et intensit\u00e9 \u00e9lectrique d\u00e9tect\u00e9e"
+  }
+}

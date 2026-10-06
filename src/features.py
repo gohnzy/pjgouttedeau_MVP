@@ -19,6 +19,8 @@ from datetime import date, datetime
 import numpy as np
 import pandas as pd
 
+import config
+
 SEASONAL_COLUMNS = ["doy_sin", "doy_cos", "doy_sin2", "doy_cos2"]
 LAG_COLUMNS = [
     "precip_lag1",    # precipitations de la veille (mm)
@@ -31,6 +33,21 @@ LAG_COLUMNS = [
 ]
 FEATURE_COLUMNS = SEASONAL_COLUMNS + LAG_COLUMNS
 TARGET_COLUMN = "is_rainy"
+
+
+def feature_row_mask(daily: pd.DataFrame) -> pd.Series:
+    """Garde les cibles connues dont les trois jours de pluie précédents sont couverts."""
+    df = daily.sort_values("obs_date").reset_index(drop=True)
+    valid = (
+        df["precip_mm"].shift(1).rolling(3).sum().notna()
+        & df[TARGET_COLUMN].notna()
+    )
+    if "n_precip_reports" in df.columns:
+        complete_day = df["n_precip_reports"].ge(
+            config.EXPECTED_PRECIP_REPORTS_PER_DAY
+        ).fillna(False)
+        valid &= complete_day.shift(1).rolling(3).sum().eq(3)
+    return valid
 
 
 def _parse_date(value) -> date:
@@ -62,7 +79,16 @@ def build_feature_frame(daily: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     """
     df = daily.sort_values("obs_date").reset_index(drop=True).copy()
 
-    seas = df["obs_date"].apply(seasonal_features).apply(pd.Series)
+    dates = pd.to_datetime(df["obs_date"])
+    day_of_year = dates.dt.dayofyear.to_numpy()
+    year_length = np.where(dates.dt.is_leap_year, 366, 365)
+    angle = 2 * np.pi * day_of_year / year_length
+    seas = pd.DataFrame({
+        "doy_sin": np.sin(angle),
+        "doy_cos": np.cos(angle),
+        "doy_sin2": np.sin(2 * angle),
+        "doy_cos2": np.cos(2 * angle),
+    }, index=df.index)
 
     df["precip_lag1"] = df["precip_mm"].shift(1)
     df["rained_lag1"] = df["is_rainy"].shift(1)
@@ -73,10 +99,13 @@ def build_feature_frame(daily: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     df["t_mean_lag1"] = df["t_mean"].shift(1)
 
     X = pd.concat([seas, df[LAG_COLUMNS]], axis=1)[FEATURE_COLUMNS]
-    y = df[TARGET_COLUMN].astype(int)
+    y = df[TARGET_COLUMN]
 
-    valid = X["precip_roll3"].notna()  # besoin d'au moins 3 jours d'historique
-    return X[valid].reset_index(drop=True), y[valid].reset_index(drop=True)
+    valid = feature_row_mask(df)
+    return (
+        X[valid].reset_index(drop=True),
+        y[valid].astype(int).reset_index(drop=True),
+    )
 
 
 def feature_medians(daily: pd.DataFrame) -> dict:
@@ -97,12 +126,27 @@ def features_for_date(value, daily: pd.DataFrame, fallback: dict | None = None) 
     hist = daily[daily["obs_date"] < target.isoformat()].sort_values("obs_date")
     fallback = fallback or {}
 
-    # Antecedents exploitables uniquement si le dernier jour connu est recent
-    # (<= 7 jours avant la cible) ; sinon on retombe sur la climatologie.
+    # Un J+1 exige des observations du jour precedent, sans reutiliser un historique stale.
     recent_enough = False
     if len(hist) >= 3:
         last_date = _parse_date(hist.iloc[-1]["obs_date"])
-        recent_enough = (target - last_date).days <= 7
+        last3_history = hist.tail(3)
+        consecutive_days = (
+            pd.to_datetime(last3_history["obs_date"]).diff().dt.days.dropna().eq(1).all()
+        )
+        complete_reports = (
+            "n_precip_reports" not in hist.columns
+            or last3_history["n_precip_reports"].ge(
+                config.EXPECTED_PRECIP_REPORTS_PER_DAY
+            ).all()
+        )
+        recent_enough = (
+            (target - last_date).days == 1
+            and consecutive_days
+            and complete_reports
+            and last3_history["precip_mm"].notna().all()
+            and last3_history["is_rainy"].notna().all()
+        )
 
     if recent_enough:
         last3 = hist.tail(3)

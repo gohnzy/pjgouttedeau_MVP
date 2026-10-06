@@ -13,10 +13,12 @@ from __future__ import annotations
 import json
 from contextlib import asynccontextmanager
 from datetime import date
+from typing import Literal
 
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, Field
 
 import config
 from src import database
@@ -26,14 +28,60 @@ from src.features import features_for_date
 STATE: dict = {}
 
 
-def _risk_level(p: float) -> str:
-    if p < 0.25:
+class PredictionResponse(BaseModel):
+    date: date
+    station: str
+    region: str
+    rain_probability: float = Field(ge=0, le=1)
+    risk_level: Literal["faible", "modéré", "élevé", "très élevé"]
+    threshold_mm: float
+    alert_probability_threshold: float = Field(ge=0, le=1)
+    based_on_history: bool
+    note: str
+
+
+class BatchPredictionRequest(BaseModel):
+    dates: list[date] = Field(min_length=1, max_length=31)
+
+
+def _risk_level(probability: float, threshold: float) -> str:
+    if probability < threshold:
         return "faible"
-    if p < 0.50:
-        return "modere"
-    if p < 0.75:
-        return "eleve"
-    return "tres eleve"
+    if probability < 0.50:
+        return "modéré"
+    if probability < 0.75:
+        return "élevé"
+    return "très élevé"
+
+
+def _predict_for_date(target: date) -> dict:
+    model = STATE.get("model")
+    if model is None:
+        raise HTTPException(status_code=503, detail="Modèle non entraîné. Lancez src.train.")
+
+    X = features_for_date(target, STATE["daily"], STATE.get("fallback"))
+    probability = float(model.predict_proba(X)[:, 1][0])
+    alert_threshold = float(
+        STATE.get("metrics", {})
+        .get("test_metrics", {})
+        .get("selected_threshold", 0.22)
+    )
+    used_history = bool(X.attrs.get("used_history", False))
+    return {
+        "date": target,
+        "station": config.STATION_NAME,
+        "region": config.REGION,
+        "rain_probability": round(probability, 4),
+        "risk_level": _risk_level(probability, alert_threshold),
+        "threshold_mm": config.RAIN_THRESHOLD_MM,
+        "alert_probability_threshold": alert_threshold,
+        "based_on_history": used_history,
+        "note": (
+            "Prévision fondée sur les antécédents météorologiques observés."
+            if used_history
+            else "Historique antérieur indisponible : estimation climatologique (saisonnière)."
+        ),
+    }
 
 
 def _load_assets() -> None:
@@ -88,41 +136,22 @@ def health():
 @app.get("/model-info")
 def model_info():
     if "metrics" not in STATE:
-        raise HTTPException(status_code=503, detail="Metriques indisponibles.")
+        raise HTTPException(status_code=503, detail="Métriques indisponibles.")
     return STATE["metrics"]
 
 
-@app.get("/predict")
+@app.get("/predict", response_model=PredictionResponse)
 def predict(
-    date_str: str = Query(
+    target: date = Query(
         ...,
         alias="date",
         description="Date au format YYYY-MM-DD",
         examples=["2024-07-14"],
     )
 ):
-    model = STATE.get("model")
-    if model is None:
-        raise HTTPException(status_code=503, detail="Modele non entraine. Lancez src.train.")
-    try:
-        target = date.fromisoformat(date_str)
-    except ValueError:
-        raise HTTPException(status_code=422, detail="Format de date invalide (attendu YYYY-MM-DD).")
+    return _predict_for_date(target)
 
-    X = features_for_date(target, STATE["daily"], STATE.get("fallback"))
-    proba = float(model.predict_proba(X)[:, 1][0])
 
-    return {
-        "date": target.isoformat(),
-        "station": config.STATION_NAME,
-        "region": config.REGION,
-        "rain_probability": round(proba, 4),
-        "risk_level": _risk_level(proba),
-        "threshold_mm": config.RAIN_THRESHOLD_MM,
-        "based_on_history": bool(X.attrs.get("used_history", False)),
-        "note": (
-            "Prevision fondee sur les antecedents meteorologiques observes."
-            if X.attrs.get("used_history")
-            else "Historique anterieur indisponible : estimation climatologique (saisonniere)."
-        ),
-    }
+@app.post("/predict/batch", response_model=list[PredictionResponse])
+def predict_batch(request: BatchPredictionRequest):
+    return [_predict_for_date(target) for target in request.dates]
