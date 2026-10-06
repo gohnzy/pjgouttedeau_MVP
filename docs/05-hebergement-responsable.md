@@ -1,5 +1,7 @@
 # Étude des hébergements responsables
 
+## _Ce document a été en partie rédigé par Claude Haiku en se basant sur les données visibles en lignes, mises à dispositions par les entreprises citées._
+
 ## Périmètre de comparaison
 
 Les éléments ci-dessous proviennent des pages publiques officielles consultées le 6 octobre 2026. Un indicateur global n'est pas assimilé à la performance d'un site précis. « Non publié dans la source citée » ne signifie pas que le fournisseur ne possède pas l'information; cela signifie qu'elle n'est pas vérifiable ici au périmètre indiqué.

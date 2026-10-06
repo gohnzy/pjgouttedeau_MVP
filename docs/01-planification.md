@@ -29,7 +29,7 @@ Le MVP ne vise pas encore ces performances produit. Il vérifie que la chaîne f
 
 ---
 
-## 1.2 Méthode de gestion de projet retenue (C7)
+## 1.2 Méthode de gestion de projet retenue
 
 **Scrum avec des sprints hebdomadaires** est retenu pour ce cadrage de dix semaines. L'EdC-01 compare plusieurs méthodes et retient Scrum, mais ne précise ni Jira ni la durée des sprints. Le dépôt GitHub est l'outil effectivement disponible pour le code et les revues; aucun tableau Jira n'est fourni comme preuve.
 
@@ -45,45 +45,7 @@ L'EdC-01 énumère chef de projet, ingénieur IoT, data scientists, UX designer 
 
 ---
 
-## 1.3 WBS — Découpage en lots (Work Breakdown Structure)
-
-```
-Projet Goutte d'eau
-├── 1. Cadrage & gouvernance
-│   ├── 1.1 Note de cadrage, objectifs SMART
-│   ├── 1.2 Registre des parties prenantes & des risques
-│   └── 1.3 Mise en place des outils collaboratifs (Jira, dépôt Git)
-├── 2. Données (C13, C14)
-│   ├── 2.1 Sources : SYNOP Météo-France (MVP) + capteurs IoT terrain (cible)
-│   ├── 2.2 Pipeline de collecte & d'ingestion (batch MVP → temps réel)
-│   └── 2.3 Modèle de données & base SQLite (MVP) / PostgreSQL + PostGIS (cible)
-├── 3. Modélisation IA
-│   ├── 3.1 Analyse exploratoire (EDA)
-│   ├── 3.2 Feature engineering
-│   ├── 3.3 Entraînement & sélection de modèle
-│   └── 3.4 Évaluation & indicateurs qualité (ROC-AUC puis RMSE/MAE)
-├── 4. Architecture & services (C11)
-│   ├── 4.1 Diagramme d'architecture & de composants
-│   ├── 4.2 API de prédiction (FastAPI)
-│   ├── 4.3 Authentification des utilisateurs
-│   ├── 4.4 Service de notifications multicanal (SMS, mail, push)
-│   └── 4.5 Sécurité & scalabilité
-├── 5. Interface utilisateur (C15)
-│   ├── 5.1 Maquette & accessibilité (RGAA/WCAG)
-│   ├── 5.2 Dashboard (MVP) et interface de démonstration (Streamlit)
-│   └── 5.3 Historique / statistiques, carte interactive (lots ultérieurs)
-├── 6. Éco-responsabilité (C12)
-│   ├── 6.1 Bonnes pratiques Green IT / Green AI
-│   └── 6.2 Optimisation de l'hébergement (cloud AWS, cf. EdC-01)
-└── 7. Industrialisation
-    ├── 7.1 CI/CD, tests, qualité
-    ├── 7.2 Déploiement & supervision
-    └── 7.3 Documentation & transfert
-```
-
----
-
-## 1.4 Backlog produit (repris de l'EdC-01)
+## 1.3 Backlog produit (repris de l'EdC-01)
 
 Le MVP couvre les lots prioritaires suivants :
 
@@ -95,7 +57,7 @@ Le MVP couvre les lots prioritaires suivants :
 
 ---
 
-## 1.5 Schéma directeur & calendrier
+## 1.4 Schéma directeur & calendrier
 
 Le MVP dure **10 semaines** (10 sprints hebdomadaires). Les phases P0 à P3 désignent : P0 cadrage et socle (S1), P1 données et qualité (S2–S3), P2 modèle et services (S4–S7), P3 recette et transfert (S8–S10). Le Gantt, les durées, les contenus et les ressources figurent dans [`diagrams/planning-gantt.md`](diagrams/planning-gantt.md). Les lots d'industrialisation, cloud et IoT sont une suite possible, pas le calendrier ni le budget de ce MVP.
 
@@ -114,15 +76,13 @@ Le MVP dure **10 semaines** (10 sprints hebdomadaires). Les phases P0 à P3 dés
 
 ---
 
-## 1.6 Outils de travail collaboratif
+## 1.5 Outils de travail collaboratif
 
 Le dépôt GitHub héberge le code et la documentation. Le workflow du dépôt exécute les tests avec GitHub Actions. Aucun espace Jira, Teams, Mattermost ou Nextcloud n'est fourni dans les éléments vérifiables; ces outils ne sont donc pas présentés comme paramétrés. La protection de `main` est une configuration à activer dans les réglages du dépôt, pas une preuve présente dans le code.
 
-Pour matérialiser C8, les tickets doivent être créés dans GitHub Projects (ou l'outil réellement retenu), liés aux PR et accompagnés d'une capture du tableau. Cette preuve d'usage reste à fournir manuellement.
-
 ---
 
-## 1.7 Budget prévisionnel
+## 1.6 Budget prévisionnel
 
 Le budget du MVP est dérivé des 10 semaines de planning ci-dessus. Les TJM sont des hypothèses de chiffrage, pas des tarifs présents dans l'EdC-01 ni des dépenses réellement engagées.
 
@@ -148,7 +108,7 @@ Les montants de **147 k€**, **550 k€ annuels**, **50 k€ de capteurs**, **8
 
 ---
 
-## 1.8 Registre des risques
+## 1.7 Registre des risques
 
 - **Données SYNOP incomplètes** : nettoyer, imputer et contrôler les relevés.
 - **Peu de jours pluvieux (~22 %)** : suivre le rappel et la PR-AUC, puis ajuster le seuil.
@@ -159,7 +119,7 @@ Les montants de **147 k€**, **550 k€ annuels**, **50 k€ de capteurs**, **8
 
 ---
 
-## 1.9 Indicateurs de pilotage
+## 1.8 Indicateurs de pilotage
 
 - **Avancement** : vélocité des sprints, burndown chart (Jira).
 - **Qualité produit (cible EdC-01)** : RMSE/MAE (quantité de pluie), taux

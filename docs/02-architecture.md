@@ -14,140 +14,13 @@ Les utilisateurs envisagés sont les agriculteurs, les services de secours (SDIS
 
 ---
 
-## 2.2 Diagramme d'architecture
+## 2.2 Diagrammes
 
-Vue d'ensemble du système, du MVP à la cible d'industrialisation.
+Les diagrammes sont situés dans ./docs/diagrams. Ouvrir les fichiers `.md` avec la commande _CTRL+SHIFT+V_ permet de visualiser les diagrammes Mermaid directement dans le .md.
 
-```mermaid
-flowchart TB
-    subgraph SRC["Sources de données"]
-        MF["Météo-France SYNOP<br/>(archive publique, Licence Ouverte)<br/><b>source du MVP</b>"]
-        IOT["Réseau de capteurs IoT<br/>(zone pilote 50 km², temps réel)<br/><b>cible EdC-01</b>"]
-    end
+---
 
-    subgraph INGEST["Couche d'ingestion"]
-        COL["Service de collecte<br/>(Python / requests)"]
-        SCHED["Ordonnanceur<br/>(cron / planificateur)<br/>rafraîchissement < 5 min"]
-    end
-
-    subgraph DATA["Couche de données"]
-        DB[("Base de données<br/>SQLite (MVP)<br/>PostgreSQL + PostGIS (cible)")]
-    end
-
-    subgraph ML["Couche IA / Modèle"]
-        TRAIN["Entraînement<br/>(scikit-learn)"]
-        MODEL["Modèle entraîné<br/>(artefact .joblib)"]
-        EVAL["Évaluation<br/>(métriques)"]
-    end
-
-    subgraph SERVE["Couche de service"]
-        API["API REST<br/>(FastAPI + Uvicorn)"]
-        AUTH["Authentification<br/>(cible, backlog #4)"]
-        NOTIF["Notifications multicanal<br/>SMS · mail · push<br/>(cible, backlog #6)"]
-    end
-
-    subgraph CLIENT["Couche présentation / utilisateurs"]
-        UI["Dashboard & interface démo<br/>(Streamlit)"]
-        AGRI["Agriculteurs"]
-        SDIS["SDIS / gestion des risques"]
-        COLL["Collectivités / urbanisme"]
-    end
-
-    MF --> COL
-    IOT -. cible .-> COL
-    SCHED --> COL
-    COL --> DB
-    DB --> TRAIN
-    TRAIN --> MODEL
-    TRAIN --> EVAL
-    MODEL --> API
-    API --> UI
-    API --> NOTIF
-    AUTH -. protège .-> API
-    UI --> AGRI
-    UI --> SDIS
-    UI --> COLL
-    NOTIF -. alertes .-> AGRI
-    NOTIF -. alertes .-> SDIS
-    NOTIF -. alertes .-> COLL
-
-    classDef future stroke-dasharray: 5 5;
-    class IOT,AUTH,NOTIF future;
-```
-
-### Vue de déploiement (cible)
-
-```mermaid
-flowchart LR
-    U["Utilisateur<br/>(navigateur)"] -->|HTTPS| LB["Reverse proxy / TLS<br/>(Nginx / Traefik)"]
-    LB --> UIc["Conteneur Interface<br/>(Streamlit)"]
-    LB --> APIc["Conteneur API<br/>(FastAPI/Uvicorn)"]
-    APIc --> PG[("PostgreSQL")]
-    APIc --> VOL["Volume modèles<br/>(artefacts .joblib)"]
-    subgraph HOST["Cloud AWS (choix EdC-01) — région bas-carbone (eu-west)"]
-        LB
-        UIc
-        APIc
-        PG
-        VOL
-    end
-```
-
-## 2.3 Diagramme de composants
-
-Détail des composants logiciels du MVP et de leurs interfaces.
-
-```mermaid
-flowchart TB
-    subgraph APP["Application Goutte d'eau (MVP)"]
-        direction TB
-
-        subgraph COLL["Composant Collecte"]
-            DC["data_collection.py<br/>download_month / collect / build_daily"]
-        end
-
-        subgraph PERS["Composant Persistance"]
-            DBM["database.py<br/>init_db / upsert / replace_daily"]
-            SQLITE[("SQLite<br/>observations, daily")]
-        end
-
-        subgraph FEAT["Composant Features"]
-            FE["features.py<br/>build_features()"]
-        end
-
-        subgraph MODL["Composant Modèle"]
-            TR["train.py<br/>Pipeline scikit-learn"]
-            EV["evaluate.py<br/>métriques & courbes"]
-            ART["rain_model.joblib<br/>metrics.json"]
-        end
-
-        subgraph APIC["Composant API"]
-            API["api.py<br/>GET /health, /predict, /model-info"]
-        end
-
-        subgraph UIC["Composant Interface"]
-            ST["streamlit_app.py<br/>démo & indicateurs"]
-        end
-    end
-
-    EXTMF["API Météo-France<br/>(HTTP / CSV.gz)"]
-
-    EXTMF -->|HTTP GET| DC
-    DC -->|upsert| DBM
-    DBM --> SQLITE
-    SQLITE -->|lecture| FE
-    FE --> TR
-    TR -->|sérialise| ART
-    TR --> EV
-    ART -->|charge au démarrage| API
-    API -->|HTTP JSON| ST
-    FE -. réutilisé .-> API
-
-    classDef store fill:#eef,stroke:#88a;
-    class SQLITE,ART store;
-```
-
-## 2.4 Description des composants
+## 2.3 Description des composants
 
 - **Collecte** : `data_collection.py` télécharge et prépare les données avec `requests` et `pandas`.
 - **Persistance** : `database.py` gère SQLite et les agrégats; PostgreSQL est envisagé pour la suite.
@@ -157,7 +30,7 @@ flowchart TB
 
 ---
 
-## 2.5 Contrat d'API (REST)
+## 2.4 Contrat d'API (REST)
 
 L'API expose trois routes :
 
@@ -186,7 +59,7 @@ La réponse est validée par un modèle Pydantic. Les niveaux utilisent le seuil
 
 ---
 
-## 2.6 Sécurité, scalabilité, intégration
+## 2.5 Sécurité, scalabilité, intégration
 
 - **MVP** : les paramètres sont validés par FastAPI. Le projet ne gère pas de données personnelles et n'inclut pas encore d'authentification ni de configuration HTTPS.
 - **Déploiement cible** : terminer la configuration TLS, gérer les secrets hors du code et ajouter l'authentification avant toute mise en production.
@@ -195,6 +68,6 @@ La réponse est validée par un modèle Pydantic. Les niveaux utilisent le seuil
 
 ---
 
-## 2.7 Trajectoire MVP → cible
+## 2.6 Trajectoire MVP → cible
 
 Pour l'industrialisation, les principaux chantiers sont le passage de SQLite à PostgreSQL/PostGIS, la conteneurisation, l'ajout de stations et de données IoT, l'automatisation des déploiements et une supervision avec métriques et alertes. Le modèle pourra aussi être comparé à des méthodes de séries temporelles ou de gradient boosting.
