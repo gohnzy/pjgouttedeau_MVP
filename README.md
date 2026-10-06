@@ -25,6 +25,8 @@ streamlit run app/streamlit_app.py
 pytest -q
 ```
 
+Le dépôt inclut la base SQLite, le modèle et ses métriques. Pour utiliser l'API hors ligne, sautez l'étape de collecte puis lancez Uvicorn; `python -m src.data_collection --skip-download` permet de recalculer `daily` depuis la base locale. `--refresh` nécessite un accès Internet.
+
 ---
 
 ## Fonctionnalités du MVP
